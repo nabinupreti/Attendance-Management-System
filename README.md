@@ -30,8 +30,9 @@ Follow the steps below to set up and run the application:
 
 ### Prerequisites
 
-- Python 3.8+ for the backend
-- Node.js 14+ and npm for the frontend
+- Python 3.12.3 for the backend
+- Node.js 22.9.0 and npm for the frontend
+- npm 10.8.3
 
 ---
 
