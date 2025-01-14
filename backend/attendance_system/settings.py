@@ -38,9 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'attendance',
+    'rest_framework',#django-rest-framework installation
+    'corsheaders',#django-cors-headers installation
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',#django-cors-headers installation
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
