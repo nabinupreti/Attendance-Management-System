@@ -10,13 +10,13 @@ import Data from "./components/Data";
 function App() {
   return (
     <div>
-      {/* <Navigation />
+      {/* <Navigation /> */}
       <Login />
-      <StudentDashboard />
+      {/* <StudentDashboard />
       <Register />
       <TakeAttendance />
-      <EnrollFaceData /> */}
-      <Data />
+      <EnrollFaceData />
+      <Data /> */}
     </div>
   );
 }

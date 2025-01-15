@@ -31,6 +31,8 @@ class Student(models.Model):
     last_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True, null=True)
     student_class = models.ForeignKey(Class, on_delete=models.CASCADE)
+    username = models.CharField(max_length=50, unique=True)  # Username field
+    password = models.CharField(max_length=100)  # Password field
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -51,3 +53,5 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.get_status_display()} on {self.date_time.strftime('%Y-%m-%d %H:%M:%S')}"
+
+
