@@ -5,16 +5,18 @@ import StudentDashboard from "./components/StudentDashboard";
 import Register from "./components/Register";
 import TakeAttendance from "./components/TakeAttendance";
 import EnrollFaceData from "./components/EnrollFaceData";
+import Data from "./components/Data";
 
 function App() {
   return (
     <div>
-      <Navigation />
+      {/* <Navigation />
       <Login />
       <StudentDashboard />
       <Register />
       <TakeAttendance />
-      <EnrollFaceData />
+      <EnrollFaceData /> */}
+      <Data />
     </div>
   );
 }
