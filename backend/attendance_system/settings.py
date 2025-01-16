@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+APPEND_SLASH=False #---API call error while sending data from frontend to backend
+
 
 # Application definition
 

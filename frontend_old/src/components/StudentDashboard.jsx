@@ -43,3 +43,12 @@ function StudentDashboard() {
 }
 
 export default StudentDashboard;
+
+
+
+/*
+Data backend bata lyaunu paryo
+dekhaunu paryo 
+report banaunu paryo
+dekhauna paryo
+*/
