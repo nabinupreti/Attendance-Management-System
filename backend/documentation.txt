@@ -196,3 +196,9 @@ api/students/1001
 post api/students/{id}
 
 api/students/v1/1001
+
+
+
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
