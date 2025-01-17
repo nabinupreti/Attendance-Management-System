@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+APPEND_SLASH=False #---API call error while sending data from frontend to backend
+
 
 # Application definition
 
@@ -37,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home',#home app
+    'attendance',#attendance app
     'api',
     #'api.login',#login app
     'rest_framework',#django-rest-framework installation
