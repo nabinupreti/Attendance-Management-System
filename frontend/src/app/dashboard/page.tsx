@@ -1,14 +1,14 @@
-import { Metadata } from "next"
-import { CalendarDays, Clock, UserCheck } from 'lucide-react'
+import { Metadata } from "next";
+import { CalendarDays, Clock, UserCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,27 +16,35 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { AttendanceChart } from "./attendance-chart"
-import { AttendanceCheckIn } from "./attendance-check-in"
-
+} from "@/components/ui/table";
+import { AttendanceChart } from "./attendance-chart";
+import { AttendanceCheckIn } from "./attendance-check-in";
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Updated to `useNavigate`
 import UserIcon from "../images/user.png";
-import { redirect } from "react-router-dom";
-
-
-const Profile = (props) => {
-  const { isLoggedIn, name, email } = props;
-  useEffect(() => {
-    if (isLoggedIn === false) redirect("/");
-  }, []);
-
 
 export const metadata: Metadata = {
   title: "Student Dashboard",
   description: "AI-Driven Face Attendance System - Student Dashboard",
-}
+};
+
+
+const Profile = (props) => {
+  const { isLoggedIn, name, email } = props;
+  const navigate = useNavigate(); // Using navigate hook for navigation
+
+  useEffect(() => {
+    if (isLoggedIn === false) navigate("/"); // Redirect using `navigate`
+  }, [isLoggedIn, navigate]);
+
+  return (
+    <div>
+      <h1>Welcome, {name}</h1>
+      <p>Email: {email}</p>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   return (
@@ -53,9 +61,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Attendance
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Attendance</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -67,9 +73,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Classes Attended
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Classes Attended</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -81,9 +85,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Last Check-in
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Last Check-in</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -95,9 +97,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Attendance Streak
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Attendance Streak</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -113,9 +113,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12 days</div>
-            <p className="text-xs text-muted-foreground">
-              Keep it up!
-            </p>
+            <p className="text-xs text-muted-foreground">Keep it up!</p>
           </CardContent>
         </Card>
       </div>
@@ -131,9 +129,7 @@ export default function DashboardPage() {
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Recent Check-ins</CardTitle>
-            <CardDescription>
-              Your last 5 attendance records
-            </CardDescription>
+            <CardDescription>Your last 5 attendance records</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -164,6 +160,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

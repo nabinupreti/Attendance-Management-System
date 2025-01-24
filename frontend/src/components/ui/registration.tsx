@@ -21,6 +21,31 @@ import { toast } from "react-toastify";
 import CountryInput from "../components/CountryInput";
 import { useEffect } from "react";
 
+export default function RegistrationForm() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [faceImage, setFaceImage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string>('')
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' }
+      })
+      setStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+      setError('')
+    } catch (err) {
+      setError('Unable to access camera. Please ensure you have granted camera permissions.'+err)
+    }
+  }
+
+
 const URL = "https://localhost:8000/" + "/api/register";
 const Register = (props) => {
   const { isLoggedIn, setIsLoggedIn, setName, setEmail } = props;
@@ -66,29 +91,7 @@ const Register = (props) => {
     }
   };
 
-export default function RegistrationForm() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
-  const [showCamera, setShowCamera] = useState(false)
-  const [error, setError] = useState<string>('')
-  const [faceImage, setFaceImage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string>('')
 
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' }
-      })
-      setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
-      setError('')
-    } catch (err) {
-      setError('Unable to access camera. Please ensure you have granted camera permissions.'+err)
-    }
-  }
 
   const stopCamera = () => {
     if (stream) {
@@ -377,4 +380,4 @@ export default function RegistrationForm() {
     </div>
   )
 }
-
+}

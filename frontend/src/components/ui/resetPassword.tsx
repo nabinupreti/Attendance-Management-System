@@ -1,8 +1,5 @@
-import { useState } from "react"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
-
-
-import { React } from "react";
+import { useState } from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -15,34 +12,43 @@ const ResetPassword = () => {
   const id = searchParams.get("id");
   const token = searchParams.get("token");
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleResetPassword = async (ev) => {
-    ev.preventDefault();
+    ev.preventDefault(); // Prevent default form submission behavior
+
     const newpassword = ev.target.newpassword.value;
     const confirmpassword = ev.target.confirmpassword.value;
-    if (newpassword !== confirmpassword)
-      toast.error("Passwords do not match !");
-    const formData = { id: id, token: token, password: newpassword };
-    const res = await axios.post(URL, formData);
-    const data = res.data;
-    if (data.success === true) {
-      toast.success(data.message);
-      navigate("/login");
-    } else toast.error(data.message);
+
+    if (newpassword !== confirmpassword) {
+      toast.error("Passwords do not match!");
+      return; // Prevent further execution if passwords don't match
+    }
+
+    try {
+      const formData = { id, token, password: newpassword };
+
+      // API Call
+      const res = await axios.post(URL, formData);
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        navigate("/login"); // Navigate to login page on success
+      } else {
+        toast.error(res.data.message); // Show error from API
+      }
+    } catch (error) {
+      toast.error("An error occurred while resetting the password. Please try again.");
+      console.error("Error resetting password:", error);
+    }
   };
-
-
-
-
-
-export default function ResetPassword() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-200 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-lg p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-all duration-300 ease-in-out hover:shadow-2xl">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white text-center mb-8">Reset Password</h1>
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleResetPassword}>
           {/* New Password Field */}
           <div className="space-y-2">
             <label htmlFor="newpassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -114,6 +120,7 @@ export default function ResetPassword() {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
+export default ResetPassword;

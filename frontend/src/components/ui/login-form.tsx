@@ -16,7 +16,7 @@ import { useEffect } from "react";
 
 const URL = "https://localhost:8000/" + "/api/login";
 
-const Login = (props) => {
+export const Login = (props) => {
   let navigate = useNavigate();
   const { isLoggedIn, setIsLoggedIn, setName, setEmail } = props;
 
@@ -39,12 +39,14 @@ const Login = (props) => {
     } else toast.error(data.message);
   };
 
-
+  return <LoginForm handleLogin={handleLogin} />;
+};
 
 export function LoginForm({
   className,
+  handleLogin,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { handleLogin: (ev: React.FormEvent<HTMLFormElement>) => void }) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
