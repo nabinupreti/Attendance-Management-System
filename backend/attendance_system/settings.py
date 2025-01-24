@@ -37,11 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home',#home app
     'api',
     #'api.login',#login app
     'rest_framework',#django-rest-framework installation
     'corsheaders',#django-cors-headers installation
+    'rest_framework.authtoken',#django-rest-framework tokenauth
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True#django-cors-headers installation
@@ -92,6 +92,13 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}#Added on 1/17/2025 for token auth from https://www.django-rest-framework.org/api-guide/authentication/
 
 AUTH_PASSWORD_VALIDATORS = [
     {

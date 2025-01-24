@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from .models import Student
 from .models import Class
+from .serializers import ClassSerializer
 
 
 @api_view(['GET'])
@@ -19,23 +20,33 @@ def get_students(request):
     students = Student.objects.all()
     data = []
     for student in students:
+        student_class = student.student_class
+        class_data = ClassSerializer(student_class).data
         data.append({
             'student_id': student.student_id,
-            'name': student.name,
-            'email': student.email,
-            # Add other fields as needed
+            'first_name': student.first_name,
+            'middle_name': student.middle_name,
+            'last_name': student.last_name,
+            'student_class': class_data,
         })
+        
     return Response(data)
 
 @api_view(['GET'])
 def get_student_by_id(request, student_id):
+    """
+    Get student by ID
+    """
     try:
         student = Student.objects.get(pk=student_id)
+        student_class = student.student_class
+        class_data = ClassSerializer(student_class).data
         data = {
             'student_id': student.student_id,
-            'name': student.name,
-            'email': student.email,
-            # Add other fields as needed
+            'first_name': student.first_name,
+            'middle_name': student.middle_name,
+            'last_name': student.last_name,
+            'student_class': class_data,
         }
         return Response(data)
     except Student.DoesNotExist:
@@ -44,25 +55,24 @@ def get_student_by_id(request, student_id):
 @api_view(['GET'])
 def get_classes(request):
     classes = Class.objects.all()
+    serializer = ClassSerializer(classes, many=True)
     data = []
     for class_obj in classes:
         data.append({
             'class_id': class_obj.class_id,
             'name': class_obj.name,
-            # Add other fields as needed
+            'section': class_obj.section,
+            'year': class_obj.year,
+            'admin': class_obj.admin,
         })
-    return Response(data)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def get_class_by_id(request, class_id):
     try:
         class_obj = Class.objects.get(pk=class_id)
-        data = {
-            'class_id': class_obj.class_id,
-            'name': class_obj.name,
-            # Add other fields as needed
-        }
-        return Response(data)
+        serializer = ClassSerializer(class_obj)
+        return Response(serializer.data)
     except Class.DoesNotExist:
         return Response({'error': 'Class not found'}, status=404)
     
@@ -70,25 +80,9 @@ def get_class_by_id(request, class_id):
 def get_student_dashboard(request, student_id):
     try:
         student = Student.objects.get(pk=student_id)
-        data = {
-            'student_id': student.student_id,
-            'name': student.name,
-            'email': student.email,
-            'classes': [class_obj.name for class_obj in student.classes.all()],
-            'assignments': [
-                {
-                    'assignment_id': assignment.assignment_id,
-                    'name': assignment.name,
-                    'due_date': assignment.due_date
-                } for assignment in student.assignments.all()
-            ],
-            'grades': [
-                {
-                    'grade_id': grade.grade_id,
-                    'assignment_name': grade.assignment.name,
-                    'grade': grade.grade
-                } for grade in student.grades.all()
-            ]
+        #to-do data here should return the dashboard's required data
+        data ={
+            'student_dash':'data'
         }
         return Response(data)
     except Student.DoesNotExist:
