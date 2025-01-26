@@ -1,4 +1,4 @@
-'use client'
+// 'use client'
 
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,7 @@ import { Camera, AlertCircle } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import CountryInput from "../components/CountryInput";
+// import CountryInput from "../components/CountryInput";
 import { useEffect } from "react";
 
 export default function RegistrationForm() {
@@ -46,7 +46,7 @@ export default function RegistrationForm() {
   }
 
 
-const URL = "https://localhost:8000/" + "/api/register";
+const URL = "https://localhost:8000/api/register";
 const Register = (props) => {
   const { isLoggedIn, setIsLoggedIn, setName, setEmail } = props;
   let navigate = useNavigate();
@@ -147,13 +147,13 @@ const Register = (props) => {
       setError('Please capture your face photo before submitting.');
       return;
     }
-  
-    const name = e.target.name.value;
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const confirmpassword = e.target.confirmpassword.value;
-    const country = e.target.country.value;
-    const phone = e.target.phone.value;
+    const form = e.target as HTMLFormElement;
+    const name = form.firstname.value;
+    const email = form.target.email.value;
+    const password = form.password.value;
+    const confirmpassword = form.confirmpassword.value;
+    const country = form.country.value;
+    const phone = form.phone.value;
   
     if (country === "Select Country") toast.error("Select your country !");
     if (password !== confirmpassword) toast.error("Passwords do not match !");
@@ -186,6 +186,7 @@ const Register = (props) => {
   };
 
   return (
+    <>
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -378,6 +379,7 @@ const Register = (props) => {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
 }

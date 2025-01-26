@@ -1,52 +1,45 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
+import { useState } from "react";
 
-const URL = "https://localhost:8000/" + "/api/login";
+const URL = "http://127.0.0.1:8000/api/login";
 
-export const Login = (props) => {
-  let navigate = useNavigate();
-  const { isLoggedIn, setIsLoggedIn, setName, setEmail } = props;
+export default function LoginForm({ className, ...props }: { className?: string; [key: string]: any }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isLoggedIn) navigate("dashboard");
-  });
+  
+  const handleLogin = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
 
-  const handleLogin = async (ev) => {
-    ev.preventDefault();
-    const email = ev.target.email.value;
-    const password = ev.target.password.value;
-    const formData = { email: email, password: password };
-    const res = await axios.post(URL, formData);
-    const data = res.data;
-    if (data.success === true) {
-      toast.success(data.message);
-      setIsLoggedIn(true);
-      setEmail(email);
-      navigate("/profile");
-    } else toast.error(data.message);
+    try {
+      const response = await axios.post(URL, { username, password }, { withCredentials: true });
+      if (response.status === 200) {
+        toast.success("Login successful!");
+        
+        navigate("/forgotpassword"); // Redirect to the dashboard page
+      } else {
+        toast.error("Login failed! Please check your credentials.");
+      }
+    } catch (error: any) {
+      console.error("Error during login:", error);
+      toast.error(error.response?.data?.detail || "An error occurred during login.");
+    }
   };
 
-  return <LoginForm handleLogin={handleLogin} />;
-};
-
-export function LoginForm({
-  className,
-  handleLogin,
-  ...props
-}: React.ComponentPropsWithoutRef<"div"> & { handleLogin: (ev: React.FormEvent<HTMLFormElement>) => void }) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -66,6 +59,7 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   required
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -78,7 +72,12 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full">
                 Login
@@ -89,7 +88,7 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="/register" className="underline underline-offset-4">
+              <a href="register" className="underline underline-offset-4">
                 Sign up
               </a>
             </div>
@@ -97,5 +96,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-f57)wm2!q(m%)8$qt$+ip*-dhp@qpbimods_qnjn^(0bk*=v%8'
+SECRET_KEY = 'django-insecure-97hi(p7um3r(@bqkl*#m&p$i%pr76qi1e9qyfzh-!l0ko7+j6o'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,18 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
-    #'api.login',#login app
-    'rest_framework',#django-rest-framework installation
-    'corsheaders',#django-cors-headers installation
-    'rest_framework.authtoken',#django-rest-framework tokenauth
+    "corsheaders",
+    "rest_framework",
+    "api",
+    # 'rest_framework_simplejwt.token_blacklist'
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True#django-cors-headers installation
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
-    'django.middleware.csrf.CsrfViewMiddleware',#csrf
-    'corsheaders.middleware.CorsMiddleware',#django-cors-headers installation
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,7 +53,21 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+# REST_FRAMEWORK = {
+#      'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#       ],
+# }
+
+# SIMPLE_JWT = {
+#      'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+#      'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+#      'ROTATE_REFRESH_TOKENS': True,
+#      'BLACKLIST_AFTER_ROTATION': True
+# }
 
 ROOT_URLCONF = 'attendance_system.urls'
 
@@ -92,13 +103,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ]
-}#Added on 1/17/2025 for token auth from https://www.django-rest-framework.org/api-guide/authentication/
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -137,3 +141,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'api.User'
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True

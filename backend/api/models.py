@@ -1,58 +1,14 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
-class UserManager(BaseUserManager):
-    def create_user(self, username, email, password=None):
-        """
-        Creates and saves a User with the given email, date of birth and password.
-        """
-        if not username:
-            raise ValueError('Users must have a username')
-        if not email:
-            raise ValueError('Users must have an email address')
-
-        user = self.model(
-            username=username,
-            email=self.normalize_email(email),
-        )
-        user.set_password(password)
-        self.save(user)
-        return user
-
-    def create_superuser(self, username, email, password):
-        """
-        Creates and saves a superuser with the given email, date of birth and password.
-        """
-        user = self.create_user(username, email, password)
-        user.is_staff = True
-        user.is_superuser = True
-        self.save(user)
-        return user
-
-
+# Custom User model
 class User(AbstractUser):
-    username = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(max_length=255, unique=True)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
-
-    objects = UserManager()
-
-    def __str__(self):
-        return self.username
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-        # Create auth token on user creation (optional, can be created separately)
-        if not self.pk:
-            Token.objects.create(user=self)
+    name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=100)
+    
+    REQUIRED_FIELDS = []
 
 
 class Role(models.Model):
@@ -111,20 +67,3 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.get_status_display()} on {self.date_time.strftime('%Y-%m-%d %H:%M:%S')}"
-
-
-
-#TO_DO DATABASE MODEL(1) BANAU ANI TESMA USER AUTH (-----) HYA CHAINE ARU
-class User(AbstractUser):
-    username = models.CharField(max_length=50, unique=True)
-    password = models.CharField(max_length=255, unique=True)
-
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
-
-    objects = UserManager()
-
-#todo.............
-#ARKO TOKEN KO HATAU SETTINGS SETUP(2) GARNE SIDE MA COMMENT
-#SERIALIZER RA VIEWSET (3) BANAU 
-#RUN CHAI NAGARA_______ LINKED IN MODEL M MEDIUM KO HERA ANI FRONTEND KO MA HERCHUq

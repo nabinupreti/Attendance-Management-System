@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import { LoginForm } from "./components/ui/login-form";
-import RegistrationForm from "./components/ui/registration";
-import NoPage from "./components/ui/nopage";
+import LandingPage from "./components/LandingPage";
+import RegistrationForm from "@/components/registration-form"
+import LoginForm from "./components/login-form";
+import NoPage from "./components/nopage";
 import DashboardPage from "./app/dashboard/page";
-import ForgotPassword from "./components/ui/forgotPassword";
-import ResetPassword from "./components/ui/resetPassword";
+import ForgotPassword from "./components/forgotPassword";
+import ResetPassword from "./components/resetPassword";
 
 import "./App.css";
 
@@ -20,7 +20,7 @@ export default function Home() {
 
   // Sync authentication state with localStorage
   useEffect(() => {
-    const storedIsLoggedIn = JSON.parse(localStorage.getItem("isLoggedIn")) || false;
+    const storedIsLoggedIn = JSON.parse(localStorage.getItem("isLoggedIn") || "false");
     const storedName = localStorage.getItem("name") || "";
     const storedEmail = localStorage.getItem("email") || "";
 
@@ -36,7 +36,7 @@ export default function Home() {
   }, [isLoggedIn, name, email]);
 
   // Wrapper for protecting routes
-  const PrivateRoute = ({ children }) => {
+  const PrivateRoute = ({ children }: { children: JSX.Element }) => {
     return isLoggedIn ? children : <Navigate to="/" replace />;
   };
 
@@ -46,15 +46,16 @@ export default function Home() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<RegistrationForm />} />
           <Route
-            path="/"
+            path="/login"
             element={
               <LoginForm
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
                 setName={setName}
                 setEmail={setEmail}
-              />
+              />             
             }
           />
           <Route

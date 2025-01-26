@@ -1,89 +1,116 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.shortcuts import render
 from rest_framework.views import APIView
-from django.http import JsonResponse
-from .models import Student
-from .models import Class
-from .serializers import ClassSerializer
+from .serializers import UserSerializer
+from rest_framework.response import Response
+from rest_framework.exceptions import AuthenticationFailed
+from .models import User
+import jwt
+from datetime import datetime,timedelta, timezone
 
-
-@api_view(['GET'])
-def getData(request):
-    data = {
-        'name': 'John Doe',
-        'age': 30
-    }
-    return Response(data)
-
-@api_view(['GET'])
-def get_students(request):
-    students = Student.objects.all()
-    data = []
-    for student in students:
-        student_class = student.student_class
-        class_data = ClassSerializer(student_class).data
-        data.append({
-            'student_id': student.student_id,
-            'first_name': student.first_name,
-            'middle_name': student.middle_name,
-            'last_name': student.last_name,
-            'student_class': class_data,
-        })
-        
-    return Response(data)
-
-@api_view(['GET'])
-def get_student_by_id(request, student_id):
-    """
-    Get student by ID
-    """
-    try:
-        student = Student.objects.get(pk=student_id)
-        student_class = student.student_class
-        class_data = ClassSerializer(student_class).data
-        data = {
-            'student_id': student.student_id,
-            'first_name': student.first_name,
-            'middle_name': student.middle_name,
-            'last_name': student.last_name,
-            'student_class': class_data,
-        }
-        return Response(data)
-    except Student.DoesNotExist:
-        return Response({'error': 'Student not found'}, status=404)
-    
-@api_view(['GET'])
-def get_classes(request):
-    classes = Class.objects.all()
-    serializer = ClassSerializer(classes, many=True)
-    data = []
-    for class_obj in classes:
-        data.append({
-            'class_id': class_obj.class_id,
-            'name': class_obj.name,
-            'section': class_obj.section,
-            'year': class_obj.year,
-            'admin': class_obj.admin,
-        })
-    return Response(serializer.data)
-
-@api_view(['GET'])
-def get_class_by_id(request, class_id):
-    try:
-        class_obj = Class.objects.get(pk=class_id)
-        serializer = ClassSerializer(class_obj)
+# Create your views here.
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data)
-    except Class.DoesNotExist:
-        return Response({'error': 'Class not found'}, status=404)
-    
-@api_view(['GET'])
-def get_student_dashboard(request, student_id):
-    try:
-        student = Student.objects.get(pk=student_id)
-        #to-do data here should return the dashboard's required data
-        data ={
-            'student_dash':'data'
+
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        user = User.objects.filter(username=username).first()
+        
+        if user is None:
+            raise AuthenticationFailed('User not found')
+        
+        if not user.check_password(password):
+            raise AuthenticationFailed('Incorrect password')
+        
+            
+        payload = {
+            'id': user.id,
+            'exp': datetime.now(timezone.utc) + timedelta(minutes=60),
+            'iat': datetime.now(timezone.utc)
         }
-        return Response(data)
-    except Student.DoesNotExist:
-        return Response({'error': 'Student not found'}, status=404)
+        
+        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        response = Response()
+        
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        
+        response.data = {
+            'username': user.username,
+            'jwt': token
+        }
+        
+        return response
+    
+class UserView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        
+        if not token:
+            raise AuthenticationFailed('Unauthenticated')
+        
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Unauthenticated')
+        
+        user = User.objects.filter(id=payload['id']).first()
+        serializer = UserSerializer(user)
+        
+        return Response(serializer.data)
+        
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data = {
+            'message': 'success'
+        }
+        return response
+
+
+#login
+#     const formData = { email: email, password: password };    response true
+#           const res = await axios.post(URL, formData);
+#           formData = .......
+
+#register
+'''
+const formData = {
+        name: name,
+        email: email,
+        password: password,
+        country: country,
+        phone: phone,
+        faceimage
+     };
+const res = await axios.post(URL, formData);
+'''
+#dashboard
+
+
+    # const formData = { email: email, password: password };    response true
+    # const res = await axios.post(URL, formData);
+
+
+#forgot password
+#  const res = await axios.post(URL, formData);
+
+#form data ---->email
+
+
+
+#reset password
+#      const res = await axios.post(URL, formData);
+
+'''
+id: The value of id from the URL parameters.
+token: The value of token from the URL parameters.
+password: The value of the newpassword input field from the form.
+'''
+
