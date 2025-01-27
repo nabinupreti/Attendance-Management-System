@@ -115,14 +115,6 @@ class Attendance(models.Model):
 
 
 #TO_DO DATABASE MODEL(1) BANAU ANI TESMA USER AUTH (-----) HYA CHAINE ARU
-class User(AbstractUser):
-    username = models.CharField(max_length=50, unique=True)
-    password = models.CharField(max_length=255, unique=True)
-
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
-
-    objects = UserManager()
 
 #todo.............
 #ARKO TOKEN KO HATAU SETTINGS SETUP(2) GARNE SIDE MA COMMENT

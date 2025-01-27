@@ -29,8 +29,8 @@ export default function LoginForm({ className, ...props }: { className?: string;
       const response = await axios.post(URL, { username, password }, { withCredentials: true });
       if (response.status === 200) {
         toast.success("Login successful!");
-        
-        navigate("/forgotpassword"); // Redirect to the dashboard page
+        props.setIsLoggedIn(true);
+        navigate("/dashboard");
       } else {
         toast.error("Login failed! Please check your credentials.");
       }
@@ -53,7 +53,7 @@ export default function LoginForm({ className, ...props }: { className?: string;
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="flex items-center" >Email</Label>
                 <Input
                   id="email"
                   type="email"

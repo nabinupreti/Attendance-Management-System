@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./components/LandingPage";
@@ -46,7 +45,7 @@ export default function Home() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<RegistrationForm />} />
+          <Route path="/" element={<LandingPage/>} />
           <Route
             path="/login"
             element={
@@ -82,7 +81,7 @@ export default function Home() {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <DashboardPage isLoggedIn={isLoggedIn} name={name} email={email} />
+                <DashboardPage isLoggedIn={isLoggedIn}/>
               </PrivateRoute>
             }
           />
