@@ -42,11 +42,12 @@ export const getClassById = async (class_id) => {
   return data;
 };
 
-export const getStudentDashboard = async (student_id) => {
-  const response = await fetch(`${BASE_URL}/student_dashboard/${student_id}/`);
+export const getStudentDashboard = async (user_id) => {
+  const response = await fetch(`${BASE_URL}/api/student_dashboard/${user_id}/`);
   const data = await response.json();
   return data;
 };
+
 
 /*
 TODO

@@ -3,10 +3,11 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer, StudentSerializer
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from .models import User
+from .models import User, Student, Attendance
 import jwt
 from datetime import datetime,timedelta, timezone
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 '''
@@ -174,6 +175,84 @@ class LogoutView(APIView):
         }
         return response
 
+
+class StudentDashboardView(APIView):
+    def get(self, request, user_id):
+        # Fetch student data
+        student = get_object_or_404(Student, user_id=user_id)
+        student_class = student.student_class
+
+        # Fetch attendance records
+        attendance_records = Attendance.objects.filter(student=student).order_by('-date_time')
+
+        total_present = attendance_records.filter(status='Present').count()
+        total_absent = attendance_records.filter(status='Absent').count()
+        total_late = attendance_records.filter(status='Late').count()
+        total_days = total_present + total_absent + total_late
+
+        # Calculate overall attendance percentage
+        overall_percentage = round((total_present / total_days) * 100, 2) if total_days > 0 else 0
+
+        # Attendance breakdown
+        attendance_breakdown = [
+            {"name": "Present", "value": total_present},
+            {"name": "Absent", "value": total_absent},
+            {"name": "Late", "value": total_late},
+        ]
+
+        # Recent attendance (last 5 records)
+        recent_attendance = [
+            {"date": att.date_time.strftime("%Y-%m-%d"), "status": att.status}
+            for att in attendance_records[:5]
+        ]
+
+        # Attendance trend (last 7 records)
+        attendance_trend = [
+            {
+                "date": att.date_time.strftime("%Y-%m-%d"),
+                "attendance": 1 if att.status == 'Present' else (0.5 if att.status == 'Late' else 0),
+            }
+            for att in attendance_records[:7]
+        ]
+
+        # Mock class ranking
+        class_ranking = {
+            "rank": "Top 15%",  # Replace with actual ranking logic if needed
+            "percentile": 85,
+        }
+
+        # Last check-in timestamp
+        last_check_in = (
+            attendance_records[0].date_time.strftime("%Y-%m-%d %I:%M %p") if attendance_records else "N/A"
+        )
+
+        # Construct response data
+        data = {
+            "id": student.user.id,
+            "first_name": student.first_name,
+            "middle_name": student.middle_name if student.middle_name else "",
+            "last_name": student.last_name,
+            "student_img": student.student_img.url if student.student_img else "/placeholder.svg",
+            "student_class": {
+                "name": student_class.name,
+                "section": student_class.section,
+                "semester": student_class.semester,
+                "year": student_class.year,
+            },
+            "attendance": {
+                "overall_percentage": overall_percentage,
+                "total_present": total_present,
+                "total_absent": total_absent,
+                "total_late": total_late,
+                "breakdown": attendance_breakdown,
+            },
+            "recent_attendance": recent_attendance,
+            "attendance_trend": attendance_trend,
+            "class_ranking": class_ranking,
+            "last_check_in": last_check_in,
+        }
+
+        return Response(data)
 
 #login
 #     const formData = { email: email, password: password };    response true

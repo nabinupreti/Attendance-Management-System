@@ -4,6 +4,8 @@ import { useState, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getStudentDashboard } from '@/services/ApiServices';
+
 import {
   PieChart,
   Pie,
@@ -28,7 +30,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { studentData } from "./mockData"
+
+
+const studentData = await getStudentDashboard(userId);
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"]
 
