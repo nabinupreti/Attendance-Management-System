@@ -308,5 +308,96 @@ const data = [
 '''
 
 
-#data required for the registration from the backend
 
+
+'''
+here is the dummy data for the student dashboard for now:
+export const studentData = {
+    id: "1234",
+    first_name: "John",
+    middle_name: "Michael",
+    last_name: "Doe",
+    student_img: "/placeholder.svg",
+    student_class: {
+      name: "Computer Science",
+      section: "A",
+      semester: "Fall",
+      year: 2025,
+    },
+    attendance: {
+      overall_percentage: 85,
+      total_present: 42,
+      total_absent: 5,
+      total_late: 3,
+      breakdown: [
+        { name: "Present", value: 42 },
+        { name: "Absent", value: 5 },
+        { name: "Late", value: 3 },
+      ],
+    },
+    recent_attendance: [
+      { date: "2025-01-25", status: "Present" },
+      { date: "2025-01-24", status: "Absent" },
+      { date: "2025-01-23", status: "Present" },
+      { date: "2025-01-22", status: "Late" },
+      { date: "2025-01-21", status: "Present" },
+    ],
+    attendance_trend: [
+      { date: "2025-01-19", attendance: 1 },
+      { date: "2025-01-20", attendance: 1 },
+      { date: "2025-01-21", attendance: 1 },
+      { date: "2025-01-22", attendance: 0.5 },
+      { date: "2025-01-23", attendance: 1 },
+      { date: "2025-01-24", attendance: 0 },
+      { date: "2025-01-25", attendance: 1 },
+    ],
+    class_ranking: {
+      rank: "Top 15%",
+      percentile: 85,
+    },
+    last_check_in: "2025-01-25 08:45 AM",
+  }
+
+  
+
+  
+table structure:Here is the table structure in the backend so donot give me the models.py file 
+the database is already made and is robust for now:
+
+User
+id (primary key)
+name
+username
+password
+Role
+id (primary key)
+name
+Admin
+id (primary key, foreign key to User)
+role (foreign key to Role)
+first_name
+last_name
+Class
+class_id (primary key)
+name
+section
+semester
+year
+admin (foreign key to Admin)
+Student
+id (primary key, foreign key to User)
+first_name
+middle_name
+last_name
+student_class (foreign key to Class)
+student_img
+Attendance
+id (primary key)
+status
+date_time
+student (foreign key to Student)
+
+can you give me the code to give the data to the frontend from the backend
+for the student dashboard with the above table structure and data required
+i am doing it in django so give me complete code with views urls or serializers needed
+'''
