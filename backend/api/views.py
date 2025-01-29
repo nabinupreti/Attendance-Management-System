@@ -8,6 +8,10 @@ import jwt
 from datetime import datetime,timedelta, timezone
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+import base64
+import os
+from django.core.files.base import ContentFile
+from django.conf import settings
 
 # Create your views here.
 '''
@@ -80,13 +84,13 @@ class here we don't write to class table just a reference is made
 #         serializer.save()
 #         return Response(serializer.data)
 
-class RegisterView(APIView):
+lass RegisterView(APIView):
     def post(self, request):
-        print(request.data)
+        # print(request.data)
         
         # Extract only the necessary fields for the UserSerializer
         user_data = {
-            'name': request.data.get('name'),
+            'name': request.data.get('first_name'),
             'username': request.data.get('username'),
             'password': request.data.get('password')
         }
@@ -97,13 +101,22 @@ class RegisterView(APIView):
         user_serializer = UserSerializer(data=user_data)
         user_serializer.is_valid(raise_exception=True)
         user = user_serializer.save()
-        print("user",user)    
+        print("user", user)
 
         # Add the user to the request data for the student serializer
         student_data = request.data.copy()
         student_data['user'] = user.id
-        print("student_data",student_data)
-        print("student_data.get('user')",student_data.get('user'))
+
+        # Decode the base64 image and save it as a file
+        student_img_base64 = student_data.get('student_img')
+        if student_img_base64:
+            format, imgstr = student_img_base64.split(';base64,')
+            ext = format.split('/')[-1]
+            img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{user.id}.{ext}')
+            student_data['student_img'] = img_data
+
+        print("student_data", student_data)
+        print("student_data.get('user')", student_data.get('user'))
 
         # Validate and save the student data
         student_serializer = StudentSerializer(data=student_data, context={'request': request})

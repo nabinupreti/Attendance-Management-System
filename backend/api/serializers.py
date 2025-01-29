@@ -27,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        print("I am inside user serializer",validated_data)
         password = validated_data.pop('password', None)
         user = User.objects.create(**validated_data)
         if password is not None:

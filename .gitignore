@@ -1,2 +1,5 @@
-.DS_Store
-backend/.DS_Store
+.DS_Store/
+backend/.DS_Store/
+backend/api/.DS_Store/
+ai_model/.DS_Store/
+backend_old/.DS_Store

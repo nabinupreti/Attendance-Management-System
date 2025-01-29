@@ -8,7 +8,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Camera, AlertCircle, Loader2 } from "lucide-react"
-import { registerStudent, type RegistrationData } from "@/services/register-api"
+import { registerStudent } from "@/services/register-api"
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function RegistrationForm() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -16,9 +20,10 @@ export default function RegistrationForm() {
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [showCamera, setShowCamera] = useState(false)
   const [error, setError] = useState<string>("")
-  const [faceImage, setFaceImage] = useState<string | null>(null)
+  const [faceImage, setFaceImage] = useState<File | null>(null)
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
 
   const startCamera = async () => {
     try {
@@ -76,32 +81,41 @@ export default function RegistrationForm() {
       setIsLoading(true)
       const formData = new FormData(e.target as HTMLFormElement)
 
-      const registrationData: RegistrationData = {
-        firstname: formData.get("firstname") as string,
-        middlename: formData.get("middlename") as string,
-        lastname: formData.get("lastname") as string,
-        class: formData.get("class") as string,
-        section: formData.get("section") as string,
-        semester: formData.get("semester") as string,
-        year: Number(formData.get("year") as string),
+      const registrationData = {
         username: formData.get("username") as string,
         password: formData.get("password") as string,
-        faceImage: faceImage,
-      }
-
+        first_name: formData.get("firstname") as string,
+        middle_name: formData.get("middlename") as string,
+        last_name: formData.get("lastname") as string,
+        student_class: {
+          name: formData.get("class") as string,
+          section: formData.get("section") as string,
+          semester: formData.get("semester") as string,
+          year: Number(formData.get("year") as string),
+        },
+        student_img: faceImage,
+      };
+      console.log(registrationData)
       const response = await registerStudent(registrationData)
-
+      // const response = { success: true, message: "Registration successful" }
       if (response.success) {
         setSuccessMessage("Registration completed successfully!")
-        // Reset form
-        ;(e.target as HTMLFormElement).reset()
-        setFaceImage(null)
+        toast.success("Registration completed successfully!!");
+        
+        // // Reset form
+        // ;(e.target as HTMLFormElement).reset()
+        // setFaceImage(null)
+        navigate("/login");
+
       } else {
+        toast.error("Registration failed! Please try again.");
         setError(response.message)
       }
-    } catch (err) {
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "An error occurred during login.");
       setError("An unexpected error occurred. Please try again.")
     } finally {
+      // This line sets the isLoading state to false, indicating that the loading process has finished.
       setIsLoading(false)
     }
   }
@@ -214,7 +228,7 @@ export default function RegistrationForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" name="password" type="password" required minLength={8} />
+                  <Input id="password" name="password" type="password" required minLength={1} />
                   <p className="text-sm text-muted-foreground">Password must be at least 8 characters long</p>
                 </div>
               </div>

@@ -1,24 +1,24 @@
-import axios from "axios"
+import axios from 'axios';
 
-// Types for the registration data
-export interface RegistrationData {
-  firstname: string
-  middlename?: string
-  lastname: string
-  class: string
-  section: string
-  semester: string
-  year: number
-  username: string
-  password: string
-  faceImage: string
+interface RegistrationData {
+  username: string;
+  password: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  student_class: {
+    name: string;
+    section: string;
+    semester: string;
+    year: number;
+  };
+  student_img?: string; // Assuming student_img is a base64 encoded string
 }
 
-// Types for the API response
-export interface ApiResponse {
-  success: boolean
-  message: string
-  data?: any
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  data?: any;
 }
 
 // Create axios instance with base URL
@@ -32,7 +32,9 @@ const api = axios.create({
 // Registration service
 export const registerStudent = async (data: RegistrationData): Promise<ApiResponse> => {
   try {
-    const response = await api.post("/register", data)
+    console.log("Data", data);
+
+    const response = await api.post("/register", data);
     return {
       success: true,
       message: "Registration successful",
