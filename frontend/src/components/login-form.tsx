@@ -56,7 +56,7 @@ export default function LoginForm({ className, ...props }: { className?: string;
                 <Label htmlFor="email" className="flex items-center" >Email</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   placeholder="m@example.com"
                   required
                   onChange={(e) => setUsername(e.target.value)}

@@ -84,7 +84,7 @@ class here we don't write to class table just a reference is made
 #         serializer.save()
 #         return Response(serializer.data)
 
-lass RegisterView(APIView):
+class RegisterView(APIView):
     def post(self, request):
         # print(request.data)
         
