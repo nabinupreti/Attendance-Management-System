@@ -1,5 +1,7 @@
 import axios from "axios";
-const BASE_URL = "http://127.0.0.1:8000/";
+const BASE_URL = "http://127.0.0.1:8000";
+// const BASE_URL = "http://127.0.0.1:8000/";
+
 
 export const fetchData = async () => {
   const response = await fetch(`${BASE_URL}/api/`); // Replace with your API endpoint
@@ -47,6 +49,23 @@ export const getStudentDashboard = async (user_id) => {
   const data = await response.json();
   return data;
 };
+
+
+export const verifyStudentIdentity = async (user_id, imageFile) => {
+  const formData = new FormData();
+  formData.append("user_id", user_id);
+  formData.append("image", imageFile);
+
+  const response = await fetch(`${BASE_URL}/api/verify_student_identity/`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json();
+  return data;
+};
+
+
 
 
 /*

@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog"
 
 
-const studentData = await getStudentDashboard(userId);
+const studentData = await getStudentDashboard(34);
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"]
 

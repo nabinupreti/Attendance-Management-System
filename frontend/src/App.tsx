@@ -6,7 +6,7 @@ import LandingPage from "./components/LandingPage";
 import RegistrationForm from "@/components/registration-form"
 import LoginForm from "./components/login-form";
 import NoPage from "./components/nopage";
-import DashboardPage from "./app/dashboard/page";
+import DashboardPage from "./app/dashboard2/studentDashboard";
 import ForgotPassword from "./components/forgotPassword";
 import ResetPassword from "./components/resetPassword";
 
