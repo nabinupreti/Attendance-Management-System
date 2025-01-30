@@ -1,17 +1,26 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from .serializers import UserSerializer, StudentSerializer
+import os
+import json
+import base64
+import jwt
+from datetime import datetime, timedelta, timezone
+
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.views import APIView
+
 from .models import User, Student, Attendance
-import jwt
-from datetime import datetime,timedelta, timezone
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-import base64
-import os
-from django.core.files.base import ContentFile
-from django.conf import settings
+from .serializers import UserSerializer, StudentSerializer
+from ai_model import FaceVerification
 
 # Create your views here.
 '''
@@ -83,6 +92,12 @@ class here we don't write to class table just a reference is made
 #         serializer.is_valid(raise_exception=True)
 #         serializer.save()
 #         return Response(serializer.data)
+
+
+"""
+
+
+"""
 
 class RegisterView(APIView):
     def post(self, request):
@@ -267,6 +282,42 @@ class StudentDashboardView(APIView):
 
         return Response(data)
 
+
+@method_decorator(csrf_exempt, name="dispatch")  # Disable CSRF for testing (use proper auth in production)
+class VerifyStudentIdentityView(View):
+    def post(self, request):
+        try:
+            # Get user_id from request
+            user_id = request.POST.get("user_id")
+            if not user_id:
+                return JsonResponse({"error": "user_id is required"}, status=400)
+
+            # Get uploaded image
+            uploaded_file = request.FILES.get("image")
+            if not uploaded_file:
+                return JsonResponse({"error": "No image uploaded"}, status=400)
+
+            # Define temporary storage path
+            temp_dir = os.path.join(settings.MEDIA_ROOT, "temp_images")
+            os.makedirs(temp_dir, exist_ok=True)
+
+            # Save the uploaded file temporarily
+            temp_file_path = os.path.join(temp_dir, f"user_{user_id}_temp.jpeg")
+            with default_storage.open(temp_file_path, "wb") as temp_file:
+                temp_file.write(uploaded_file.read())
+
+            # Call AI model function
+            verification_result = FaceVerification(user_id, temp_file_path)
+
+            # Delete the temporary image after verification
+            os.remove(temp_file_path)
+
+            # Parse JSON result and return response
+            return JsonResponse(json.loads(verification_result))
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
 #login
 #     const formData = { email: email, password: password };    response true
 #           const res = await axios.post(URL, formData);
@@ -306,100 +357,6 @@ id: The value of id from the URL parameters.
 token: The value of token from the URL parameters.
 password: The value of the newpassword input field from the form.
 '''
-
-
-
-
-
-#data required for dashboard from the backend 
-'''
-
-const data = [
-  {
-    name: "Mon",
-    total: 4,
-  },
-  {
-    name: "Tue",
-    total: 3,
-  },
-  {
-    name: "Wed",
-    total: 5,
-  },
-  {
-    name: "Thu",
-    total: 4,
-  },
-  {
-    name: "Fri",
-    total: 5,
-  },
-  {
-    name: "Sat",
-    total: 2,
-  },
-  {
-    name: "Sun",
-    total: 0,
-  },
-]
-'''
-
-'''
-{
-  "total_attendance": {
-    "percentage": 89,
-    "change": "+2%"
-  },
-  "classes_attended": {
-    "total": 249,
-    "out_of": 280
-  },
-  "last_check_in": {
-    "date": "May 15, 2023",
-    "time": "08:45 AM"
-  },
-  "attendance_streak": {
-    "days": 12
-  },
-  "attendance_overview": [
-    {
-      "date": "May 1, 2023",
-      "attendance": 90
-    },
-    {
-      "date": "May 2, 2023",
-      "attendance": 92
-    },
-    {
-      "date": "May 3, 2023",
-      "attendance": 88
-    },
-    ...
-  ],
-  "recent_check_ins": [
-    {
-      "date": "May 15, 2023",
-      "time": "08:45 AM",
-      "status": "On Time"
-    },
-    {
-      "date": "May 14, 2023",
-      "time": "09:02 AM",
-      "status": "Late"
-    },
-    {
-      "date": "May 13, 2023",
-      "time": "08:50 AM",
-      "status": "On Time"
-    },
-    ...
-  ]
-}
-'''
-
-
 
 
 '''
