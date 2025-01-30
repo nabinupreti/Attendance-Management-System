@@ -20,10 +20,14 @@ class FaceVerification:
         :return: JSON response indicating whether the images match.
         """
         stored_image_path = os.path.join(self.base_dir, f"user_{user_id}.jpeg")
-        
+        print("Stored Image Path:", stored_image_path)  # Debugging
+
         if not os.path.exists(stored_image_path):
             return json.dumps({"error": "Stored student image not found"}, indent=4)
         
+        if not os.path.exists(input_image_path):
+            return json.dumps({"error": "Input image not found"}, indent=4)
+
         try:
             verification = DeepFace.verify(img1_path=stored_image_path, img2_path=input_image_path)
             return json.dumps({
@@ -35,7 +39,7 @@ class FaceVerification:
         except Exception as e:
             return json.dumps({"error": str(e)}, indent=4)
 
-# Example usage:
-# face_verifier = FaceVerification(r"C:\\Users\\sahan\\OneDrive\\Documents\\GitHub\\Attendance-Management-System\\backend\\student_images")
-# result = face_verifier.verify_identity(34, "C:\\path\\to\\input_image.jpg")
-# print(result)
+# Correct base directory and input image path
+face_verifier = FaceVerification(r"/Users/nabinupreti/Desktop/AMS_1/Attendance-Management-System/backend/student_images")
+result = face_verifier.verify_identity(34, "/Users/nabinupreti/Desktop/AMS_1/Attendance-Management-System/backend/student_images/user_34.jpeg")
+print(result)

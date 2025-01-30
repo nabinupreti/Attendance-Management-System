@@ -29,6 +29,7 @@ export default function LoginForm({ className, ...props }: { className?: string;
       const response = await axios.post(URL, { username, password }, { withCredentials: true });
       if (response.status === 200) {
         toast.success("Login successful!");
+        props.setId(response.data.user_id);
         props.setIsLoggedIn(true);
         navigate("/dashboard");
       } else {

@@ -10,23 +10,28 @@ import DashboardPage from "./app/dashboard2/studentDashboard";
 import ForgotPassword from "./components/forgotPassword";
 import ResetPassword from "./components/resetPassword";
 import AdminLoginForm from "./components/admin/admin-login";
+import AdminDashboardPage from "./app/dashboard2/studentDashboard";
 
 import "./App.css";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedInAdmin, setIsLoggedInAdmin] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [id, setId] = useState(0);
 
   // Sync authentication state with localStorage
   useEffect(() => {
     const storedIsLoggedIn = JSON.parse(localStorage.getItem("isLoggedIn") || "false");
     const storedName = localStorage.getItem("name") || "";
     const storedEmail = localStorage.getItem("email") || "";
+    const storedId = localStorage.getItem("id") || 0;
 
     setIsLoggedIn(storedIsLoggedIn);
     setName(storedName);
     setEmail(storedEmail);
+    setId(storedId);
   }, []);
 
   useEffect(() => {
@@ -55,6 +60,7 @@ export default function Home() {
                 setIsLoggedIn={setIsLoggedIn}
                 setName={setName}
                 setEmail={setEmail}
+                setId={setId}
               />             
             }
           />
@@ -62,7 +68,7 @@ export default function Home() {
             path="/login/admin"
             element={
               <AdminLoginForm
-                isLoggedIn={isLoggedIn}
+                isLoggedInAdmin={isLoggedInAdmin}
                 setIsLoggedIn={setIsLoggedIn}
                 setName={setName}
                 setEmail={setEmail}
@@ -93,11 +99,19 @@ export default function Home() {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <DashboardPage isLoggedIn={isLoggedIn}/>
+                <DashboardPage isLoggedIn={isLoggedIn} id={id}/>
               </PrivateRoute>
             }
           />
-
+        {/* Admin Protected Route */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <PrivateRoute isLoggedInAdmin={isLoggedInAdmin}>
+              <AdminDashboardPage />
+            </PrivateRoute>
+            }
+          />
           {/* Fallback Route */}
           <Route path="*" element={<NoPage />} />
         </Routes>

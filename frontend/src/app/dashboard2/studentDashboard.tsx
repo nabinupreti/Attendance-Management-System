@@ -1,11 +1,11 @@
 "use client"
-
-import { useState, useRef, useCallback } from "react"
+import { toast } from "react-hot-toast";
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getStudentDashboard } from '@/services/ApiServices';
-
+import { logout } from "@/services/ApiServices";
 import {
   PieChart,
   Pie,
@@ -30,13 +30,29 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { get } from "http";
 
 
 const studentData = await getStudentDashboard(34);
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"]
 
-export default function StudentDashboard() {
+export default function StudentDashboard(...props: any) {
+  
+  // const [studentData, setStudentData] = useState<any>(null)
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await getStudentDashboard(props.id);
+  //       setStudentData(response);
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+  
+  //   fetchData();
+  // }, [props.id]);
+
   const [isChecking, setIsChecking] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -96,13 +112,28 @@ export default function StudentDashboard() {
     })
   }, [closeCamera, toast])
 
-  const handleLogout = useCallback(() => {
-    // Implement logout logic here
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    })
-  }, [toast])
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+  
+      // Redirect to login page
+      window.location.href = "/login"; // OR use Next.js router
+    } catch (error) {
+      console.error("Logout error:", error);
+  
+      toast({
+        title: "Logout Failed",
+        description: "An error occurred while logging out. Please try again.",
+        variant: "destructive", // Optional: if using a UI library that supports variants
+      });
+    }
+  }, [toast]);
+  
 
   const handleDownloadReport = useCallback(() => {
     // Implement report download logic here

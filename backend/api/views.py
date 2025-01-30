@@ -172,6 +172,7 @@ class LoginView(APIView):
         
         response.data = {
             'username': user.username,
+            'user_id': user.id,
             'jwt': token
         }
         
@@ -283,6 +284,19 @@ class StudentDashboardView(APIView):
         return Response(data)
 
 
+import os
+import json
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.conf import settings
+from deepface import DeepFace
+
+# Import the FaceVerification class
+from ai_model import FaceVerification  
+
 @method_decorator(csrf_exempt, name="dispatch")  # Disable CSRF for testing (use proper auth in production)
 class VerifyStudentIdentityView(View):
     def post(self, request):
@@ -303,20 +317,23 @@ class VerifyStudentIdentityView(View):
 
             # Save the uploaded file temporarily
             temp_file_path = os.path.join(temp_dir, f"user_{user_id}_temp.jpeg")
-            with default_storage.open(temp_file_path, "wb") as temp_file:
-                temp_file.write(uploaded_file.read())
+            with open(temp_file_path, "wb") as temp_file:
+                for chunk in uploaded_file.chunks():
+                    temp_file.write(chunk)
 
             # Call AI model function
-            verification_result = FaceVerification(user_id, temp_file_path)
+            face_verifier = FaceVerification(settings.MEDIA_ROOT + "/student_images")  # Ensure correct base path
+            verification_result = face_verifier.verify_identity(user_id, temp_file_path)
 
             # Delete the temporary image after verification
             os.remove(temp_file_path)
 
             # Parse JSON result and return response
-            return JsonResponse(json.loads(verification_result))
+            return JsonResponse(json.loads(verification_result), safe=False)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
 
 #login
 #     const formData = { email: email, password: password };    response true

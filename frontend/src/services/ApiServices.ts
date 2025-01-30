@@ -46,8 +46,8 @@ export const getClassById = async (class_id) => {
 
 export const getStudentDashboard = async (user_id) => {
   const response = await fetch(`${BASE_URL}/api/student_dashboard/${user_id}/`);
-  const data = await response.json();
-  return data;
+  // const data = await response.json();
+  return response.json();
 };
 
 
@@ -65,6 +65,18 @@ export const verifyStudentIdentity = async (user_id, imageFile) => {
   return data;
 };
 
+export const logout = async () => {
+  const response = await fetch(`${BASE_URL}/logout/`, {
+    method: "POST",
+    credentials: "include", // Ensures cookies (JWT) are included
+  });
+
+  if (!response.ok) {
+    throw new Error("Logout failed");
+  }
+
+  return response.json();
+};
 
 
 
