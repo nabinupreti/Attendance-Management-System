@@ -9,6 +9,7 @@ import NoPage from "./components/nopage";
 import DashboardPage from "./app/dashboard2/studentDashboard";
 import ForgotPassword from "./components/forgotPassword";
 import ResetPassword from "./components/resetPassword";
+import AdminLoginForm from "./components/admin/admin-login";
 
 import "./App.css";
 
@@ -50,6 +51,17 @@ export default function Home() {
             path="/login"
             element={
               <LoginForm
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+                setName={setName}
+                setEmail={setEmail}
+              />             
+            }
+          />
+          <Route
+            path="/login/admin"
+            element={
+              <AdminLoginForm
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
                 setName={setName}
