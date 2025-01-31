@@ -69,7 +69,7 @@ export default function Home() {
             element={
               <AdminLoginForm
                 isLoggedInAdmin={isLoggedInAdmin}
-                setIsLoggedIn={setIsLoggedIn}
+                setIsLoggedInAdmin={setIsLoggedInAdmin}
                 setName={setName}
                 setEmail={setEmail}
               />             
@@ -107,8 +107,8 @@ export default function Home() {
         <Route
           path="/admin-dashboard"
           element={
-            <PrivateRoute isLoggedInAdmin={isLoggedInAdmin}>
-              <AdminDashboardPage />
+            <PrivateRoute >
+              <AdminDashboardPage isLoggedInAdmin={isLoggedInAdmin}/>
             </PrivateRoute>
             }
           />

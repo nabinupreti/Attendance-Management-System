@@ -122,11 +122,11 @@ export default function RegistrationForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
+      <Card className="w-full max-w-2xl ">
+        <CardHeader >
           <CardTitle>Student Registration</CardTitle>
           <CardDescription>
-            Please fill in your details and capture your face photo to create a new student account
+            Please fill in your details and capture your face photo to register 
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -137,26 +137,26 @@ export default function RegistrationForm() {
           )}
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Personal Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Personal Information</h3>
+            <div className="space-y-4 rounded-xl border p-5">
+              <h3 className="text-lg font-medium text-bold">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstname">First Name</Label>
-                  <Input id="firstname" name="firstname" placeholder="John" required />
+                  <Input id="firstname" name="firstname" placeholder="Ram" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="middlename">Middle Name</Label>
-                  <Input id="middlename" name="middlename" placeholder="David" />
+                  <Input id="middlename" name="middlename" placeholder="Prasad" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastname">Last Name</Label>
-                  <Input id="lastname" name="lastname" placeholder="Smith" required />
+                  <Input id="lastname" name="lastname" placeholder="Thapa" required />
                 </div>
               </div>
             </div>
 
             {/* Academic Information */}
-            <div className="space-y-4">
+            <div className="space-y-4 rounded-xl border p-5 ">
               <h3 className="text-lg font-medium">Academic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
@@ -171,19 +171,8 @@ export default function RegistrationForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="section">Section</Label>
-                  <Select name="section" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select section" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">A</SelectItem>
-                      <SelectItem value="B">B</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
+                
+                <div className="space-y-2 ">
                   <Label htmlFor="semester">Semester</Label>
                   <Select name="semester" required>
                     <SelectTrigger>
@@ -201,6 +190,20 @@ export default function RegistrationForm() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="section">Section</Label>
+                  <Select name="section" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">A</SelectItem>
+                      <SelectItem value="B">B</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="year">Year</Label>
                   <Select name="year" required>
@@ -219,23 +222,23 @@ export default function RegistrationForm() {
             </div>
 
             {/* Account Information */}
-            <div className="space-y-4">
+            <div className="space-y-4 rounded-xl border p-5">
               <h3 className="text-lg font-medium">Account Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
-                  <Input id="username" name="username" placeholder="johnsmith123" required />
+                  <Input id="username" name="username" placeholder="ramprasad123" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" name="password" type="password" required minLength={1} />
-                  <p className="text-sm text-muted-foreground">Password must be at least 8 characters long</p>
+                  <p className="text-sm text-muted-foreground">Password must be at least 8 characters</p>
                 </div>
               </div>
             </div>
 
             {/* Face Enrollment Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 rounded-xl border p-5">
               <h3 className="text-lg font-medium">Face Enrollment</h3>
               {error && (
                 <Alert variant="destructive">

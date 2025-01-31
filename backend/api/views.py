@@ -20,7 +20,9 @@ from rest_framework.views import APIView
 
 from .models import User, Student, Attendance
 from .serializers import UserSerializer, StudentSerializer
-from ai_model import FaceVerification
+
+from deepface import DeepFace
+
 
 # Create your views here.
 '''
@@ -206,7 +208,7 @@ class LogoutView(APIView):
 
 
 class StudentDashboardView(APIView):
-    def get(self, request, user_id):
+    def get(self, response, user_id):
         # Fetch student data
         student = get_object_or_404(Student, user_id=user_id)
         student_class = student.student_class
@@ -282,58 +284,6 @@ class StudentDashboardView(APIView):
         }
 
         return Response(data)
-
-
-import os
-import json
-from django.http import JsonResponse
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import default_storage
-from django.conf import settings
-from deepface import DeepFace
-
-# Import the FaceVerification class
-from ai_model import FaceVerification  
-
-@method_decorator(csrf_exempt, name="dispatch")  # Disable CSRF for testing (use proper auth in production)
-class VerifyStudentIdentityView(View):
-    def post(self, request):
-        try:
-            # Get user_id from request
-            user_id = request.POST.get("user_id")
-            if not user_id:
-                return JsonResponse({"error": "user_id is required"}, status=400)
-
-            # Get uploaded image
-            uploaded_file = request.FILES.get("image")
-            if not uploaded_file:
-                return JsonResponse({"error": "No image uploaded"}, status=400)
-
-            # Define temporary storage path
-            temp_dir = os.path.join(settings.MEDIA_ROOT, "temp_images")
-            os.makedirs(temp_dir, exist_ok=True)
-
-            # Save the uploaded file temporarily
-            temp_file_path = os.path.join(temp_dir, f"user_{user_id}_temp.jpeg")
-            with open(temp_file_path, "wb") as temp_file:
-                for chunk in uploaded_file.chunks():
-                    temp_file.write(chunk)
-
-            # Call AI model function
-            face_verifier = FaceVerification(settings.MEDIA_ROOT + "/student_images")  # Ensure correct base path
-            verification_result = face_verifier.verify_identity(user_id, temp_file_path)
-
-            # Delete the temporary image after verification
-            os.remove(temp_file_path)
-
-            # Parse JSON result and return response
-            return JsonResponse(json.loads(verification_result), safe=False)
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
 
 #login
 #     const formData = { email: email, password: password };    response true
@@ -467,3 +417,54 @@ can you give me the code to give the data to the frontend from the backend
 for the student dashboard with the above table structure and data required
 i am doing it in django so give me complete code with views urls or serializers needed
 '''
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FaceVerification(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            student_id = data.get('student_id')
+            image_data = data.get('image_data')
+
+            if not student_id or not image_data:
+                return JsonResponse({'error': 'Invalid data'}, status=400)
+
+            # Get the student image from the database
+            try:
+                student = Student.objects.get(user_id=student_id)
+                print(student.student_img.path)
+            except Student.DoesNotExist:
+                return JsonResponse({'error': 'Student not found'}, status=404)
+
+            # Decode the base64 image data
+            image_data = base64.b64decode(image_data)
+            temp_image_path = '/tmp/temp_image.jpg'
+            with open(temp_image_path, 'wb') as f:
+                f.write(image_data)
+
+            print("temp_image_path",temp_image_path)
+            print("student.student_img.path",student.student_img.path)
+            # Perform the verification
+            verification = DeepFace.verify(img1_path=student.student_img.path, img2_path=temp_image_path)
+            verification = DeepFace.verify(
+                img1_path=student.student_img.path, 
+                img2_path=temp_image_path,  
+                model_name="ArcFace",  # More robust model
+                detector_backend="retinaface",  # Best for face alignment
+                distance_metric="euclidean_l2",  # Stricter distance measure
+                enforce_detection=True,  # Avoid using blank images if no face is detected
+                align=True  # Corrects face alignment issues
+            )
+            print(verification)
+            # Custom strict threshold (reduce false positives)
+            distance = verification["distance"]
+            threshold = 1  # Adjust threshold to a stricter value
+
+            if distance < threshold:
+                verified = True
+            else:
+                 verified = False
+            
+            return JsonResponse({'verified': verified}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)

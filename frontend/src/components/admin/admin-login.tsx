@@ -29,7 +29,7 @@ export default function AdminLoginForm({ className, ...props }: { className?: st
       const response = await axios.post(URL, { username, password }, { withCredentials: true });
       if (response.status === 200) {
         toast.success("Login successful!");
-        props.setIsLoggedIn(true);
+        props.setIsLoggedInAdmin(true);
         navigate("/dashboard");
       } else {
         toast.error("Login failed! Please check your credentials.");

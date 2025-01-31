@@ -47,14 +47,14 @@ export default function LoginForm({ className, ...props }: { className?: string;
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your credentials below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email" className="flex items-center" >Email</Label>
+                <Label htmlFor="email" className="flex items-center" >Username</Label>
                 <Input
                   id="email"
                   type="text"

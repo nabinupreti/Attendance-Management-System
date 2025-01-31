@@ -4,7 +4,7 @@ const BASE_URL = "http://127.0.0.1:8000";
 
 
 export const fetchData = async () => {
-  const response = await fetch(`${BASE_URL}/api/`); // Replace with your API endpoint
+  const response = await fetch(`${BASE_URL}/api/`); 
   const data = await response.json();
   return data;
   // return response.data;
@@ -46,8 +46,8 @@ export const getClassById = async (class_id) => {
 
 export const getStudentDashboard = async (user_id) => {
   const response = await fetch(`${BASE_URL}/api/student_dashboard/${user_id}/`);
-  // const data = await response.json();
-  return response.json();
+  const data = await response.json();
+  return data;
 };
 
 
@@ -66,7 +66,7 @@ export const verifyStudentIdentity = async (user_id, imageFile) => {
 };
 
 export const logout = async () => {
-  const response = await fetch(`${BASE_URL}/logout/`, {
+  const response = await fetch(`${BASE_URL}/api/logout`, {
     method: "POST",
     credentials: "include", // Ensures cookies (JWT) are included
   });

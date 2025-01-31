@@ -1,5 +1,4 @@
 "use client"
-import { toast } from "react-hot-toast";
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -30,29 +29,42 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { get } from "http";
+import axios from 'axios';
 
-
-const studentData = await getStudentDashboard(34);
+// const studentData = await getStudentDashboard(34);
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"]
 
-export default function StudentDashboard(...props: any) {
-  
-  // const [studentData, setStudentData] = useState<any>(null)
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await getStudentDashboard(props.id);
-  //       setStudentData(response);
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-  
-  //   fetchData();
-  // }, [props.id]);
+interface StudentData {
+  student_img: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  student_class: {
+    name: string;
+    section: string;
+    semester: string;
+    year: string;
+  };
+  last_check_in: string;
+  attendance: {
+    overall_percentage: number;
+    total_present: number;
+    total_absent: number;
+    total_late: number;
+    breakdown: { name: string; value: number }[];
+  };
+  class_ranking: {
+    rank: number;
+    percentile: number;
+  };
+  recent_attendance: { date: string; status: string }[];
+  attendance_trend: { date: string; attendance: number }[];
+}
 
+export default function StudentDashboard(props: any) {
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isChecking, setIsChecking] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -60,79 +72,122 @@ export default function StudentDashboard(...props: any) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const { toast } = useToast()
 
-  const openCamera = useCallback(async () => {
-    setIsCameraOpen(true)
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
-    } catch (err) {
-      console.error("Error accessing the camera", err)
-      toast({
-        title: "Camera Error",
-        description: "Unable to access the camera. Please check your permissions.",
-        variant: "destructive",
-      })
-    }
-  }, [toast])
-
-  const capturePhoto = useCallback(() => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas")
-      canvas.width = videoRef.current.videoWidth
-      canvas.height = videoRef.current.videoHeight
-      canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0)
-      const imageDataUrl = canvas.toDataURL("image/jpeg")
-      setCapturedImage(imageDataUrl)
-    }
-  }, [])
-
-  const retakePhoto = useCallback(() => {
-    setCapturedImage(null)
-  }, [])
 
   const closeCamera = useCallback(() => {
-    setIsCameraOpen(false)
-    setCapturedImage(null)
-    const stream = videoRef.current?.srcObject as MediaStream
-    stream?.getTracks().forEach((track) => track.stop())
-  }, [])
-
-  const handleAttendance = useCallback(async () => {
-    setIsChecking(true)
-    // Simulating sending the photo to the backend and waiting for verification
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsChecking(false)
-    setIsVerified(true)
-    closeCamera()
-    toast({
-      title: "Attendance Verified",
-      description: "Your attendance has been recorded for today.",
-    })
-  }, [closeCamera, toast])
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await logout();
-      
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
-      });
-  
-      // Redirect to login page
-      window.location.href = "/login"; // OR use Next.js router
-    } catch (error) {
-      console.error("Logout error:", error);
-  
-      toast({
-        title: "Logout Failed",
-        description: "An error occurred while logging out. Please try again.",
-        variant: "destructive", // Optional: if using a UI library that supports variants
-      });
+    if (videoRef.current) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+            stream.getTracks().forEach((track) => {
+                track.stop(); // Stop each track properly
+                console.log(`Stopped track: ${track.kind}`);
+            });
+            videoRef.current.srcObject = null; // Clear the stream reference
+            console.log("Camera closed and video source set to null");
+        }
     }
-  }, [toast]);
+    setIsCameraOpen(false);
+    setCapturedImage(null);
+}, []);
+
+const openCamera = useCallback(async () => {
+    closeCamera(); // Ensure any existing camera stream is closed before opening a new one
+    setIsCameraOpen(true);
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+    } catch (err) {
+        console.error("Error accessing the camera", err);
+        toast({
+            title: "Camera Error",
+            description: "Unable to access the camera. Please check your permissions.",
+            variant: "destructive",
+        });
+        closeCamera(); // Ensure the camera is closed in case of an error
+    }
+}, [closeCamera, toast]);
+
+const capturePhoto = useCallback(() => {
+    if (videoRef.current) {
+        const canvas = document.createElement("canvas");
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+        const imageDataUrl = canvas.toDataURL("image/jpeg");
+        setCapturedImage(imageDataUrl);
+    }
+}, []);
+
+const retakePhoto = useCallback(() => {
+    setCapturedImage(null);
+}, []);
+
+const handleAttendance = useCallback(async () => {
+    setIsChecking(true);
+
+    if (!capturedImage) {
+        toast({
+            title: "No Image Captured",
+            description: "Please capture an image before proceeding.",
+            variant: "destructive",
+        });
+        setIsChecking(false);
+        return;
+    }
+
+    const imageData = capturedImage.split(',')[1];
+    console.log("Captured image data:", imageData);
+
+    try {
+        const response = await axios.post(
+            'http://localhost:8000/api/face-verification',
+            {
+                student_id: props.id,
+                image_data: imageData,
+            }
+        );
+        console.log("Verification response:", response.data);
+        setIsVerified(response.data.verified);
+        
+        toast({
+            title: response.data.verified ? "Attendance Verified" : "Attendance Not Verified",
+            description: response.data.verified
+                ? "Your attendance has been recorded for today."
+                : "The verification process failed.",
+        });
+    } catch (error) {
+        console.error("Error verifying attendance", error);
+        toast({
+            title: "Attendance Error",
+            description: "An error occurred while verifying attendance.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsChecking(false);
+        closeCamera(); // Ensure camera is closed after verification
+    }
+}, [capturedImage, props.id, closeCamera, toast]);
+
+const handleLogout = useCallback(async () => {
+    try {
+        await logout();
+        toast({
+            title: "Logged Out",
+            description: "You have been successfully logged out.",
+        });
+        window.location.href = "/login"; // OR use Next.js router
+    } catch (error) {
+        console.error("Logout failed", error);
+        toast({
+            title: "Logout Error",
+            description: "An error occurred while logging out.",
+            variant: "destructive",
+        });
+    }
+}, [toast]);
+
   
 
   const handleDownloadReport = useCallback(() => {
@@ -142,6 +197,37 @@ export default function StudentDashboard(...props: any) {
       description: "Your attendance report has been downloaded.",
     })
   }, [toast])
+
+  const id = props.id;
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!id) return; // Conditional logic inside useEffect, not before Hooks
+
+      setLoading(true);
+      try {
+        console.log("Fetching data for ID:", id);
+        const data = await getStudentDashboard(id);
+        setStudentData(data);
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [id]); // Only re-run when `id` changes
+
+  //Conditional UI rendering (outside of Hook logic)
+  if (!id) return <p>No ID provided</p>;
+  if (loading) return <p>Loading...</p>;
+  if (!studentData) return <p>No student data available.</p>;
+
+  console.log("studentData", studentData);
+
+  
+
 
   return (
     <div className="container mx-auto p-4">
