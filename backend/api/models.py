@@ -12,14 +12,7 @@ class User(AbstractUser):
 
 
 class Role(models.Model):
-    """
-    Role: Teacher, Principal
-    from .models import Role
-
-    Role.objects.create(name="Teacher")
-    Role.objects.create(name="Principal")
-
-    """
+    
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):

@@ -22,6 +22,7 @@ from .models import User, Student, Attendance
 from .serializers import UserSerializer, StudentSerializer
 
 from deepface import DeepFace
+# from django.utils import timezone
 
 
 # Create your views here.
@@ -167,6 +168,8 @@ class LoginView(APIView):
             'iat': datetime.now(timezone.utc)
         }
         
+        print("payload", payload)
+        
         token = jwt.encode(payload, 'secret', algorithm='HS256')
         response = Response()
         
@@ -246,10 +249,32 @@ class StudentDashboardView(APIView):
             for att in attendance_records[:7]
         ]
 
-        # Mock class ranking
+        # Calculate class ranking
+        classmates = Student.objects.filter(student_class_id=student_class)
+        total_classmates = classmates.count()
+
+        # Calculate the attendance percentage for each classmate
+        classmate_attendance = []
+        for classmate in classmates:
+            classmate_records = Attendance.objects.filter(student=classmate)
+            classmate_present = classmate_records.filter(status='Present').count()
+            classmate_absent = classmate_records.filter(status='Absent').count()
+            classmate_late = classmate_records.filter(status='Late').count()
+            classmate_total_days = classmate_present + classmate_absent + classmate_late
+            classmate_percentage = (classmate_present / classmate_total_days) * 100 if classmate_total_days > 0 else 0
+            classmate_attendance.append((classmate.user_id, classmate_percentage))
+
+        # Sort classmates by attendance percentage in descending order
+        classmate_attendance.sort(key=lambda x: x[1], reverse=True)
+
+        # Find the rank of the current student
+        student_rank = next((index for index, (id, _) in enumerate(classmate_attendance) if id == student.user_id), None)
+        student_rank_actual = student_rank + 1 if student_rank is not None else total_classmates
+
+        # Class ranking
         class_ranking = {
-            "rank": "Top 15%",  # Replace with actual ranking logic if needed
-            "percentile": 85,
+            "rank": student_rank_actual,
+            "total": total_classmates,
         }
 
         # Last check-in timestamp
@@ -417,7 +442,6 @@ can you give me the code to give the data to the frontend from the backend
 for the student dashboard with the above table structure and data required
 i am doing it in django so give me complete code with views urls or serializers needed
 '''
-
 @method_decorator(csrf_exempt, name='dispatch')
 class FaceVerification(View):
     def post(self, request, *args, **kwargs):
@@ -442,8 +466,7 @@ class FaceVerification(View):
             with open(temp_image_path, 'wb') as f:
                 f.write(image_data)
 
-            print("temp_image_path",temp_image_path)
-            print("student.student_img.path",student.student_img.path)
+            verified = False
             # Perform the verification
             verification = DeepFace.verify(img1_path=student.student_img.path, img2_path=temp_image_path)
             verification = DeepFace.verify(
@@ -463,8 +486,29 @@ class FaceVerification(View):
             if distance < threshold:
                 verified = True
             else:
-                 verified = False
+                verified = False
             
-            return JsonResponse({'verified': verified}, status=200)
+            from django.utils import timezone
+            
+            current_time = timezone.localtime(timezone.now())
+            
+            college_start_time = current_time.replace(hour=11, minute=0, second=0)
+            print("college_start_time", college_start_time)
+            college_end_time = current_time.replace(hour=16, minute=0, second=0)
+            print("college_end_time", college_end_time)
+            
+           
+            
+            # Update attendance in the database
+            if verified:
+                if current_time < college_start_time:
+                    attendance_status = Attendance.PRESENT
+                else:
+                    attendance_status = Attendance.LATE
+                Attendance.objects.create(status=attendance_status, student=student, date_time=timezone.localtime(timezone.now()))
+                print("current_time", current_time)
+                return JsonResponse({'verified': True, 'attendance': attendance_status}, status=200)
+            else:
+                return JsonResponse({'verified': False}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)

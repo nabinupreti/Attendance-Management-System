@@ -14,12 +14,15 @@ import StudentsPage from './admindash/students/page.tsx';
 import ClassesPage from './admindash/classes/page.tsx';
 import AttendancePage from './admindash/attendance/page.tsx';
 import ReportsPage from './admindash/reports/page.tsx';
+import { Toaster } from './components/ui/toaster.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <Toaster />
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={
+       <Routes>
+        
+        {/*<Route path="/" element={
           <React.Fragment>
             <RootLayout >
             <Page />
@@ -53,9 +56,9 @@ createRoot(document.getElementById('root')!).render(
             <ReportsPage />
             </RootLayout>
           </React.Fragment>
-        } />
+        } /> */}
 
-        <Route path="/student" element={<StudentDashboard id={32} />} />
+        <Route path="/student" element={<StudentDashboard id={34} />} />
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
     </BrowserRouter>

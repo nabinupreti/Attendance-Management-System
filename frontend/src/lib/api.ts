@@ -1,3 +1,4 @@
+/*
 import type { Student, Class, User, Attendance, AttendanceReport } from "./types"
 
 let classes: Class[] = [
@@ -5,191 +6,6 @@ let classes: Class[] = [
   { class_id: 2, name: "Physics", section: "B", semester: "Fall", year: 2023, admin: "Jane Smith" },
   { class_id: 3, name: "Chemistry", section: "C", semester: "Fall", year: 2023, admin: "Bob Johnson" },
 ]
-
-/*
-[
-    {
-        "class_id": 1,
-        "name": "BIM",
-        "section": "A",
-        "semester": "First",
-        "year": 2023,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 2,
-        "name": "BIM",
-        "section": "B",
-        "semester": "First",
-        "year": 2023,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 3,
-        "name": "BIM",
-        "section": "A",
-        "semester": "Second",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 4,
-        "name": "BIM",
-        "section": "B",
-        "semester": "Second",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 5,
-        "name": "BHM",
-        "section": "A",
-        "semester": "First",
-        "year": 2024,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 6,
-        "name": "BIM",
-        "section": "B",
-        "semester": "Sixth",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 7,
-        "name": "BIM",
-        "section": "A",
-        "semester": "Sixth",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 8,
-        "name": "BHM",
-        "section": "A",
-        "semester": "Sixth",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    },
-    {
-        "class_id": 9,
-        "name": "BHM",
-        "section": "B",
-        "semester": "Sixth",
-        "year": 2021,
-        "admin": {
-            "user": {
-                "id": 6,
-                "name": "",
-                "username": "admin"
-            },
-            "role": {
-                "id": 3,
-                "name": "Principal"
-            },
-            "first_name": "admin",
-            "last_name": "user"
-        }
-    }
-]
-*/ 
 
 
 let students: Student[] = [
@@ -401,3 +217,120 @@ export async function exportAttendanceReport(classId: string, startDate: Date, e
   alert("Report exported successfully!")
 }
 
+*/
+
+
+
+import type { Student, Class, Attendance,  User } from "./types"
+
+// Define the backend base URL
+const BASE_URL = "http://localhost:8000/adminuser"
+
+// Function to fetch classes from the backend
+export async function getClasses(): Promise<Class[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/classes`)
+    if (!response.ok) throw new Error("Failed to fetch classes")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching classes:", error)
+    return [] // Return an empty array in case of error
+  }
+}
+
+// Function to add a class
+export async function addClass(newClass: Omit<Class, "class_id">): Promise<Class> {
+  try {
+    const response = await fetch(`${BASE_URL}/classes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newClass),
+    })
+    if (!response.ok) throw new Error("Failed to add class")
+    return await response.json()
+  } catch (error) {
+    console.error("Error adding class:", error)
+    throw error
+  }
+}
+
+// Function to fetch students from the backend
+export async function getStudents(): Promise<Student[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/students`)
+    if (!response.ok) throw new Error("Failed to fetch students")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching students:", error)
+    return [] // Return an empty array in case of error
+  }
+}
+
+// Function to add a student
+export async function addStudent(newStudent: Omit<Student, "user">): Promise<Student> {
+  try {
+    const user: User = {
+      id: new Date().getTime(), // Or generate an ID based on your logic
+      username: `${newStudent.first_name.toLowerCase()}_${newStudent.last_name.toLowerCase()}`,
+      name: `${newStudent.first_name} ${newStudent.last_name}`,
+    }
+    const studentWithUser = { ...newStudent, user }
+
+    const response = await fetch(`${BASE_URL}/students`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(studentWithUser),
+    })
+    if (!response.ok) throw new Error("Failed to add student")
+    return await response.json()
+  } catch (error) {
+    console.error("Error adding student:", error)
+    throw error
+  }
+}
+
+// Function to fetch attendance records from the backend
+export async function getAttendance(): Promise<Attendance[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/attendance`)
+    if (!response.ok) throw new Error("Failed to fetch attendance records")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching attendance records:", error)
+    return [] // Return an empty array in case of error
+  }
+}
+
+// Function to update attendance status
+export async function updateAttendanceStatus(attendanceId: number, newStatus: "Present" | "Absent" | "Late"): Promise<Attendance> {
+  try {
+    const response = await fetch(`${BASE_URL}/attendance/${attendanceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    if (!response.ok) throw new Error("Failed to update attendance status")
+    return await response.json()
+  } catch (error) {
+    console.error("Error updating attendance status:", error)
+    throw error
+  }
+}
+
+// Function to get attendance report for a specific class
+export async function getAttendanceReport(classId: string, startDate: Date, endDate: Date): Promise<AttendanceReport[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/attendance/report?classId=${classId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+    if (!response.ok) throw new Error("Failed to fetch attendance report")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching attendance report:", error)
+    return [] // Return an empty array in case of error
+  }
+}
+
+// Function to export the attendance report (just logs in this example)
+export async function exportAttendanceReport(classId: string, startDate: Date, endDate: Date): Promise<void> {
+  console.log(`Exporting report for class ${classId} from ${startDate.toISOString()} to ${endDate.toISOString()}`)
+  alert("Report exported successfully!")
+}

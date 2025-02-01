@@ -20,7 +20,6 @@ import {
 } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Camera, Check, Loader2, RefreshCw, LogOut, Download } from "lucide-react"
-
 import { useToast } from "@/hooks/use-toast"
 import {
   Dialog,
@@ -31,7 +30,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import axios from 'axios';
-import { tr } from "date-fns/locale"
 
 // const studentData = await getStudentDashboard(34);
 
@@ -58,7 +56,7 @@ interface StudentData {
   };
   class_ranking: {
     rank: number;
-    total: number;
+    percentile: number;
   };
   recent_attendance: { date: string; status: string }[];
   attendance_trend: { date: string; attendance: number }[];
@@ -74,46 +72,44 @@ export default function StudentDashboard(props: any) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (studentData) {
-      setIsVerified(new Date(studentData.last_check_in).toDateString() === new Date().toDateString());
-    }
-  }, [studentData]);
+
   const closeCamera = useCallback(() => {
-    if (videoRef.current) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        if (stream) {
-            stream.getTracks().forEach((track) => {
-                track.stop(); // Stop each track properly
-                console.log(`Stopped track: ${track.kind}`);
-            });
-            videoRef.current.srcObject = null; // Clear the stream reference
-            console.log("Camera closed and video source set to null");
-        }
+    setIsCameraOpen(false);
+    setCapturedImage(null);
+
+    const videoElement = videoRef.current;
+    if (videoElement && videoElement.srcObject) {
+        const stream = videoElement.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => {
+            track.stop();
+            console.log(`Stopped track: ${track.kind}`);
+        });
+        videoElement.srcObject = null;
+        console.log("Video source object set to null");
     }
-    //setIsCameraOpen(false);
-    // setCapturedImage(null);
-}, []);
+    console.log("Camera closed");
+}, [videoRef, setIsCameraOpen, setCapturedImage]);
 
 const openCamera = useCallback(async () => {
-    closeCamera(); // Ensure any existing camera stream is closed before opening a new one
-    setIsCameraOpen(true);
+  setIsCameraOpen(true);
+  try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+          // Close any previous stream
+          closeCamera();
+          videoRef.current.srcObject = stream;
+      }
+  } catch (err) {
+      console.error("Error accessing the camera", err);
+      toast({
+          title: "Camera Error",
+          description: "Unable to access the camera. Please check your permissions.",
+          variant: "destructive",
+      });
+      closeCamera();
+  }
+}, [toast, closeCamera]);
 
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-        }
-    } catch (err) {
-        console.error("Error accessing the camera", err);
-        toast({
-            title: "Camera Error",
-            description: "Unable to access the camera. Please check your permissions.",
-            variant: "destructive",
-        });
-        closeCamera(); // Ensure the camera is closed in case of an error
-    }
-}, [closeCamera, toast]);
 
 const capturePhoto = useCallback(() => {
     if (videoRef.current) {
@@ -123,79 +119,51 @@ const capturePhoto = useCallback(() => {
         canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
         const imageDataUrl = canvas.toDataURL("image/jpeg");
         setCapturedImage(imageDataUrl);
-        closeCamera();
     }
 }, []);
 
 const retakePhoto = useCallback(() => {
     setCapturedImage(null);
-    openCamera();
 }, []);
 
 const handleAttendance = useCallback(async () => {
-    setIsChecking(true);
+  setIsChecking(true);
+  try {
+      const imageData = capturedImage.split(',')[1];
+      const response = await axios.post('http://localhost:8000/api/face-verification', {
+          student_id: props.id,
+          image_data: imageData,
+      });
+      
+      setIsVerified(response.data.verified);
+      toast({
+          title: response.data.verified ? "Attendance Verified" : "Attendance Not Verified",
+          description: response.data.verified 
+              ? "Your attendance has been recorded for today." 
+              : "The verification process failed.",
+      });
+  } catch (error) {
+      toast({
+          title: "Attendance Error",
+          description: "An error occurred while verifying attendance.",
+      });
+  } finally {
+      closeCamera(); // Close camera no matter what
+      setIsChecking(false);
+  }
+}, [capturedImage, closeCamera, toast, props.id]);
 
-    if (!capturedImage) {
-        toast({
-            title: "No Image Captured",
-            description: "Please capture an image before proceeding.",
-            variant: "destructive",
-        });
-        setIsChecking(false);
-        return;
-    }
-
-    const imageData = capturedImage.split(',')[1];
-    console.log("Captured image data:", imageData);
-
-    try {
-        const response = await axios.post(
-            'http://localhost:8000/api/face-verification',
-            {
-                student_id: props.id,
-                image_data: imageData,
-            }
-        );
-        console.log("Verification response:", response.data);
-        setIsVerified(response.data.verified);
-        closeCamera();
-        setIsCameraOpen(false);
-        setCapturedImage(null);
-        
-        toast({
-            title: response.data.verified ? "Attendance Verified" : "Attendance Not Verified",
-            description: response.data.verified
-                ? "Your attendance has been recorded for today."
-                : "Face does not match. Please try again.",
-            variant: response.data.verified ? "default" : "destructive",
-            className: response.data.verified ? "bg-green-500" : "bg-red-500",
-        });
-    } catch (error) {
-        console.error("Error verifying attendance", error);
-        closeCamera();
-        setIsCameraOpen(false);
-        setCapturedImage(null);
-        toast({
-            title: "Attendance Error",
-            description: "An error occurred while verifying your attendance. Please try again.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsChecking(false);
-        setIsCameraOpen(false);
-        setCapturedImage(null);
-        closeCamera(); // Ensure camera is closed after verification
-    }
-}, [capturedImage, props.id, closeCamera, toast]);
 
 const handleLogout = useCallback(async () => {
     try {
         await logout();
+        
         toast({
             title: "Logged Out",
             description: "You have been successfully logged out.",
-            className: "bg-green-500",
         });
+
+        // Redirect to login page
         window.location.href = "/login"; // OR use Next.js router
     } catch (error) {
         console.error("Logout failed", error);
@@ -206,51 +174,15 @@ const handleLogout = useCallback(async () => {
         });
     }
 }, [toast]);
-
   
 
   const handleDownloadReport = useCallback(() => {
-    // Import jsPDF
-    import("jspdf").then(async jsPDF => {
-      const autoTable = (await import("jspdf-autotable")).default;
-      const doc = new jsPDF.default();
-
-      // Add title
-      doc.setFontSize(18);
-      doc.text("Student Attendance Report", 14, 22);
-
-      // Add student information
-      doc.setFontSize(12);
-      if(studentData){
-        doc.text(`Name: ${studentData.first_name} ${studentData.middle_name} ${studentData.last_name}`, 14, 32);
-        doc.text(`Class: ${studentData.student_class.name} - Section ${studentData.student_class.section}`, 14, 40);
-        doc.text(`Semester: ${studentData.student_class.semester} ${studentData.student_class.year}`, 14, 48);
-        doc.text(`Overall Attendance: ${studentData.attendance.overall_percentage}%`, 14, 56);
-        doc.text(`Class Rank: ${studentData.class_ranking.rank}/${studentData.class_ranking.total}`, 14, 64);
-
-        // Add recent attendance records
-        doc.text("Recent Attendance Records:", 14, 74);
-        const tableColumn = ["Date", "Status"];
-        const tableRows = studentData.recent_attendance.map(record => [record.date, record.status]);
-
-        // Add table
-        autoTable(doc, {
-          startY: 80,
-          head: [tableColumn],
-          body: tableRows,
-        });
-
-        // Save the PDF
-        doc.save(`attendance_report_${studentData.first_name}_${studentData.last_name}.pdf`);
-      }
-      
-      toast({
-        title: "Report Downloaded",
-        description: "Your attendance report has been downloaded.",
-        className: "bg-green-500",
-      });
-    });
-  }, [studentData, toast]);
+    // Implement report download logic here
+    toast({
+      title: "Report Downloaded",
+      description: "Your attendance report has been downloaded.",
+    })
+  }, [toast])
 
   const id = props.id;
 
@@ -322,27 +254,20 @@ const handleLogout = useCallback(async () => {
         </CardHeader>
         <CardContent className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-        {isVerified ? `Last check-in: ${studentData.last_check_in}` : "Please verify your attendance for today."}
+            {isVerified ? `Last check-in: ${studentData.last_check_in}` : "Please verify your attendance for today."}
           </p>
-          <Button
-        onClick={openCamera}
-        disabled={
-          isChecking ||
-          isVerified ||
-          new Date(studentData.last_check_in).toDateString() === new Date().toDateString()
-        }
-          >
-        {isVerified ? (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Verified
-          </>
-        ) : (
-          <>
-            <Camera className="mr-2 h-4 w-4" />
-            Take Photo
-          </>
-        )}
+          <Button onClick={openCamera} disabled={isChecking || isVerified}>
+            {isVerified ? (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Verified
+              </>
+            ) : (
+              <>
+                <Camera className="mr-2 h-4 w-4" />
+                Take Photo
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -394,26 +319,8 @@ const handleLogout = useCallback(async () => {
             <CardTitle>Class Ranking</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">Rank: {studentData.class_ranking.rank}
-            {(() => {
-              const rank = studentData.class_ranking.rank;
-              const suffix = (rank) => {
-                const j = rank % 10,
-                  k = rank % 100;
-                if (j === 1 && k !== 11) {
-                  return "st";
-                }
-                if (j === 2 && k !== 12) {
-                  return "nd";
-                }
-                if (j === 3 && k !== 13) {
-                  return "rd";
-                }
-                return "th";
-              };
-              return <sup>{suffix(rank)}</sup>;
-            })()}</div>
-            <p className="text-muted-foreground">Total Students: {studentData.class_ranking.total}</p>
+            <div className="text-4xl font-bold">{studentData.class_ranking.rank}</div>
+            <p className="text-muted-foreground">Top {studentData.class_ranking.percentile}th percentile</p>
           </CardContent>
         </Card>
       </div>
@@ -453,20 +360,7 @@ const handleLogout = useCallback(async () => {
             <LineChart data={studentData.attendance_trend}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis 
-              tickFormatter={(value) => {
-                switch (value) {
-                case 1:
-                  return 'Present';
-                case 0:
-                  return 'Absent';
-                case 0.5:
-                  return 'Late';
-                default:
-                  return '';
-                }
-              }}
-              />
+              <YAxis />
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="attendance" stroke="#8884d8" activeDot={{ r: 8 }} />
@@ -494,7 +388,6 @@ const handleLogout = useCallback(async () => {
                   alt="Captured"
                   className="w-full h-full object-cover rounded-md"
                 />
-              
               </div>
             )}
           </div>
@@ -531,3 +424,4 @@ const handleLogout = useCallback(async () => {
     </div>
   )
 }
+
