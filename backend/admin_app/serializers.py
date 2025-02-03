@@ -38,45 +38,30 @@ class AdminSerializer(serializers.ModelSerializer):
 
 # Class Serializer
 
+# Class Serializer
 class ClassSerializer(serializers.ModelSerializer):
-    admin = serializers.SerializerMethodField()
+    admin = AdminSerializer(read_only=True)
 
     class Meta:
         model = Class
-        fields = ['class_id', 'name', 'section', 'semester', 'year', 'admin']
+        fields = ["class_id", "name", "section", "semester", "year", "admin"]
 
-    def get_admin(self, obj):
-        return f"{obj.admin.first_name} {obj.admin.last_name}"
 
 # Student Serializer
 class StudentSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    student_class = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
+    student_class = ClassSerializer(read_only=True)
+    student_img = serializers.ImageField()
 
     class Meta:
         model = Student
-        fields = ['user', 'first_name', 'middle_name', 'last_name', 'student_class', 'student_img']
+        fields = ["user", "first_name", "middle_name", "last_name", "student_class", "student_img"]
 
-    def get_user(self, obj):
-        """Format user object with id, username, and name."""
-        return {
-            "id": obj.user.id,
-            "username": obj.user.username,
-            "name": obj.user.name
-        }
 
-    def get_student_class(self, obj):
-        """Return only the reference to the class instead of nesting the object."""
-        return f"classes[{obj.student_class.class_id - 1}]"  # Assuming class_id starts from 1
 # Attendance Serializer
 class AttendanceSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()
+    student = StudentSerializer(read_only=True)
 
     class Meta:
         model = Attendance
-        fields = ['id', 'status', 'date_time', 'student']
-
-    def validate_status(self, value):
-        if value not in [Attendance.PRESENT, Attendance.ABSENT, Attendance.LATE]:
-            raise serializers.ValidationError("Invalid status value.")
-        return value
+        fields = ["id", "student", "status", "date_time"]

@@ -10,6 +10,8 @@ from rest_framework import status
 from rest_framework import generics
 from api.models import Class, Student, Attendance
 from .serializers import ClassSerializer, StudentSerializer, AttendanceSerializer
+from django.http import HttpResponse
+import csv
 
 class RegisterView(APIView):
     def post(self, request):
@@ -77,8 +79,88 @@ class LogoutView(APIView):
         }
         return response
 
+# Class Views
+class ClassListView(generics.ListAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
 
 
+class ClassCreateView(generics.CreateAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
+
+
+class ClassUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
+    lookup_field = "class_id"
+
+
+class ClassDeleteView(generics.DestroyAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
+    lookup_field = "class_id"
+
+
+# Student Views
+class StudentListView(generics.ListAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+
+class StudentCreateView(generics.CreateAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+
+# Attendance Views
+class AttendanceListView(generics.ListAPIView):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
+
+
+class AttendanceUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
+    lookup_field = "attendance_id"
+
+
+# Reports Views
+class AttendanceReportView(APIView):
+    def post(self, request):
+        class_id = request.data.get("classId")
+        start_date = request.data.get("startDate")
+        end_date = request.data.get("endDate")
+
+        if not class_id or not start_date or not end_date:
+            return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        attendance_records = Attendance.objects.filter(student__student_class__id=class_id, date__range=[start_date, end_date])
+        total_students = attendance_records.count()
+        present_count = attendance_records.filter(status="Present").count()
+        absent_count = attendance_records.filter(status="Absent").count()
+        late_count = attendance_records.filter(status="Late").count()
+
+        attendance_rate = (present_count / total_students * 100) if total_students else 0
+
+        return Response(
+            {
+                "class": attendance_records.first().student.student_class.name if total_students else "N/A",
+                "totalStudents": total_students,
+                "present": present_count,
+                "absent": absent_count,
+                "late": late_count,
+                "attendanceRate": attendance_rate,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class AttendanceExportView(APIView):
+    def post(self, request):
+        return Response({"message": "Export functionality not implemented yet"}, status=status.HTTP_200_OK)
+
+'''
 #Class View
 class ClassListView(generics.ListCreateAPIView):
     queryset = Class.objects.all()
@@ -153,3 +235,5 @@ class AttendanceBulkUpdateView(APIView):
             attendance.status = record["status"]
             attendance.save()
         return Response({"message": "Bulk update successful"}, status=status.HTTP_200_OK)
+
+'''

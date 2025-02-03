@@ -1,25 +1,27 @@
-import React from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, Calendar, Home, Users, FileText, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react'
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { BookOpen, Calendar, Home, Users, FileText, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { logout } from "@/lib/api"
 
 const links = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Classes', href: '/classes', icon: BookOpen },
-  { name: 'Students', href: '/students', icon: Users },
-  { name: 'Attendance', href: '/attendance', icon: Calendar },
-  { name: 'Reports', href: '/reports', icon: FileText },
-];
+  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Classes", href: "/classes", icon: BookOpen },
+  { name: "Students", href: "/students", icon: Users },
+  { name: "Attendance", href: "/attendance", icon: Calendar },
+  { name: "Reports", href: "/reports", icon: FileText },
+]
 
 export function Sidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname()
+  const router = useRouter()
 
   const handleLogout = async () => {
-    // await logout()
-    // Use navigate from react-router-dom to navigate to login page
-    navigate('/login/admin');
-  };
+    await logout()
+    router.push("/login")
+  }
 
   return (
     <div className="flex h-full flex-col bg-gray-900 text-white">
@@ -28,27 +30,33 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 space-y-1 px-2 py-4">
         {links.map((link) => {
-          const LinkIcon = link.icon;
-          const isActive = location.pathname === link.href;
+          const LinkIcon = link.icon
           return (
-            <NavLink
+            <Link
               key={link.name}
-              to={link.href}
-              className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                isActive ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-              }`}
+              href={link.href}
+              className={cn(
+                "group flex items-center rounded-md px-2 py-2 text-sm font-medium",
+                pathname === link.href ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white",
+              )}
             >
-              <LinkIcon className="mr-3 h-5 w-5" />
+              <LinkIcon className="mr-3 h-6 w-6 flex-shrink-0" />
               {link.name}
-            </NavLink>
-          );
+            </Link>
+          )
         })}
       </nav>
-      <Button onClick={handleLogout} className="mt-auto">
-        <LogOut className="mr-2 h-5 w-5" />
-        Logout
-      </Button>
+      <div className="p-4">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-5 w-5" />
+          Logout
+        </Button>
+      </div>
     </div>
-  );
+  )
 }
 
