@@ -276,10 +276,11 @@ class StudentDashboardView(APIView):
             "rank": student_rank_actual,
             "total": total_classmates,
         }
-
+        from django.utils import timezone
         # Last check-in timestamp
         last_check_in = (
-            attendance_records[0].date_time.strftime("%Y-%m-%d %I:%M %p") if attendance_records else "N/A"
+            
+            timezone.localtime(attendance_records[0].date_time).strftime("%Y-%m-%d %I:%M %p") if attendance_records else "N/A"
         )
 
         # Construct response data
@@ -505,10 +506,11 @@ class FaceVerification(View):
                     attendance_status = Attendance.PRESENT
                 else:
                     attendance_status = Attendance.LATE
-                Attendance.objects.create(status=attendance_status, student=student, date_time=timezone.localtime(timezone.now()))
+                Attendance.objects.create(status=attendance_status, student=student, date_time=current_time)
                 print("current_time", current_time)
                 return JsonResponse({'verified': True, 'attendance': attendance_status}, status=200)
             else:
                 return JsonResponse({'verified': False}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        

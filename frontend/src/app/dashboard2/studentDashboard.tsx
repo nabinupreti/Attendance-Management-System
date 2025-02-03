@@ -77,6 +77,8 @@ export default function StudentDashboard(props: any) {
   useEffect(() => {
     if (studentData) {
       setIsVerified(new Date(studentData.last_check_in).toDateString() === new Date().toDateString());
+      console.log(new Date(studentData.last_check_in).toDateString())
+      console.log("Date:", new Date().toDateString())
     }
   }, [studentData]);
   const closeCamera = useCallback(() => {
