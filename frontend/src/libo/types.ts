@@ -2,7 +2,6 @@ export interface User {
     id: number
     username: string
     name: string
-    role?: string // Add this line to include the role
   }
   
   export interface Class {
@@ -30,18 +29,4 @@ export interface User {
     date: string
   }
   
-  export interface AttendanceReport {
-    class: string
-    totalStudents: number
-    present: number
-    absent: number
-    late: number
-    attendanceRate: number
-  }
   
-  export interface Admin {
-    user: User
-    role: string
-    first_name: string
-    last_name: string
-  }

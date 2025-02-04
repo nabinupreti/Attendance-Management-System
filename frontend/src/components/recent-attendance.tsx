@@ -7,7 +7,7 @@ export function RecentAttendance({ data }: { data: Attendance[] }) {
       {data.map((entry) => (
         <div key={entry.id} className="flex items-center">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={entry.student.student_img} alt={entry.student.first_name} />
+            {/* <AvatarImage src={entry.student.student_img} alt={entry.student.first_name} /> */}
             <AvatarFallback>{getInitials(entry.student.first_name, entry.student.last_name)}</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">

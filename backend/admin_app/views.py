@@ -12,6 +12,18 @@ from api.models import Class, Student, Attendance
 from .serializers import ClassSerializer, StudentSerializer, AttendanceSerializer
 from django.http import HttpResponse
 import csv
+from django.db.models import Count
+
+from django.http import JsonResponse, HttpResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import json
+from api.models import Attendance, Class, Student
+import csv
+from datetime import datetime
+
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -102,6 +114,11 @@ class ClassDeleteView(generics.DestroyAPIView):
     lookup_field = "class_id"
 
 
+class ClassCountView(APIView):
+    def get(self, request):
+        count = Class.objects.count()
+        return Response({"total_classes": count}, status=status.HTTP_200_OK)
+
 # Student Views
 class StudentListView(generics.ListAPIView):
     queryset = Student.objects.all()
@@ -112,6 +129,10 @@ class StudentCreateView(generics.CreateAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
+class StudentCountView(APIView):
+    def get(self, request):
+        count = Student.objects.count()
+        return Response({"total_students": count}, status=status.HTTP_200_OK)
 
 # Attendance Views
 class AttendanceListView(generics.ListAPIView):
@@ -160,80 +181,60 @@ class AttendanceExportView(APIView):
     def post(self, request):
         return Response({"message": "Export functionality not implemented yet"}, status=status.HTTP_200_OK)
 
-'''
-#Class View
-class ClassListView(generics.ListCreateAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
 
-class ClassDetailView(generics.RetrieveAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
-    lookup_field = "class_id"
+# View for recent attendance
+class RecentAttendanceView(View):
+    def get(self, request):
+        recent_attendance = Attendance.objects.order_by("-date_time")[:10].values()
+        return JsonResponse(list(recent_attendance), safe=False)
 
-class ClassCreateView(generics.CreateAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
+# View for attendance trends
+class AttendanceTrendView(View):
+    def get(self, request):
+        trend_data = (
+            Attendance.objects.values("status")
+            .annotate(total=Count("status"))
+            .order_by("-total")
+        )
+        return JsonResponse(list(trend_data), safe=False)
 
-class ClassUpdateView(generics.UpdateAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
-    lookup_field = "class_id"
-
-class ClassDeleteView(generics.DestroyAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
-    lookup_field = "class_id"
-
-class StudentListView(generics.ListCreateAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-
-class StudentDetailView(generics.RetrieveAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    lookup_field = "student_id"
-
-class StudentCreateView(generics.CreateAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-
-class StudentUpdateView(generics.UpdateAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    lookup_field = "student_id"
-
-class StudentDeleteView(generics.DestroyAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    lookup_field = "student_id"
-
-
-
-class AttendanceListView(generics.ListCreateAPIView):
-    queryset = Attendance.objects.all()
-    serializer_class = AttendanceSerializer
-
-class AttendanceDetailView(generics.RetrieveAPIView):
-    queryset = Attendance.objects.all()
-    serializer_class = AttendanceSerializer
-    lookup_field = "attendance_id"
-
-class AttendanceCreateView(generics.CreateAPIView):
-    queryset = Attendance.objects.all()
-    serializer_class = AttendanceSerializer
-
-class AttendanceUpdateView(generics.UpdateAPIView):
-    queryset = Attendance.objects.all()
-    serializer_class = AttendanceSerializer
-    lookup_field = "attendance_id"
-
-class AttendanceBulkUpdateView(APIView):
+# View to generate attendance report
+@method_decorator(csrf_exempt, name="dispatch")
+class AttendanceReportView(View):
     def post(self, request):
-        for record in request.data:
-            attendance = Attendance.objects.get(id=record["attendance_id"])
-            attendance.status = record["status"]
-            attendance.save()
-        return Response({"message": "Bulk update successful"}, status=status.HTTP_200_OK)
+        data = json.loads(request.body)
+        class_id = data.get("classId")
+        start_date = data.get("startDate")
+        end_date = data.get("endDate")
 
-'''
+        attendance_records = Attendance.objects.filter(
+            class_id=class_id,
+            date__range=[start_date, end_date]
+        ).values()
+
+        return JsonResponse(list(attendance_records), safe=False)
+
+# View to export attendance report as CSV
+@method_decorator(csrf_exempt, name="dispatch")
+class AttendanceExportView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        class_id = data.get("classId")
+        start_date = data.get("startDate")
+        end_date = data.get("endDate")
+
+        attendance_records = Attendance.objects.filter(
+            class_id=class_id,
+            date__range=[start_date, end_date]
+        )
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="attendance_report.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(["Student", "Class", "Date", "Status"])
+        
+        for record in attendance_records:
+            writer.writerow([record.student.user.username, record.class_id.name, record.date, record.status])
+
+        return response
