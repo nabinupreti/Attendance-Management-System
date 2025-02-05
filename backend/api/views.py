@@ -173,7 +173,14 @@ class LoginView(APIView):
         token = jwt.encode(payload, 'secret', algorithm='HS256')
         response = Response()
         
-        response.set_cookie(key='jwt', value=token, httponly=True, samesite='Lax', secure=True)
+        response.set_cookie(
+            key='jwt',
+            value=token,
+            httponly=True, 
+            samesite='Lax', 
+            secure=True, 
+            expires=datetime.now(timezone.utc) + timedelta(minutes=60)  # Optional: exact expiry time
+        )   
         
         response.data = {
             'username': user.username,
