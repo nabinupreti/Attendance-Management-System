@@ -30,7 +30,7 @@ export default function AdminLoginForm({ className, ...props }: { className?: st
       if (response.status === 200) {
         toast.success("Login successful!");
         props.setIsLoggedInAdmin(true);
-        navigate("/dashboard");
+        navigate("/admin-dashboard");
       } else {
         toast.error("Login failed! Please check your credentials.");
       }
