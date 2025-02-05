@@ -19,8 +19,17 @@ export default function StudentsPage() {
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null)
 
   useEffect(() => {
-    setStudents(getStudents())
-    setClasses(getClasses())
+    async function fetchData() {
+      try {
+        const studentsData = await getStudents()
+        const classesData = await getClasses()
+        setStudents(studentsData)
+        setClasses(classesData)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      }
+    }
+    fetchData()
   }, [])
 
   const filteredStudents = students.filter(
@@ -187,4 +196,3 @@ function StudentForm({ onSubmit, initialData, classes }: StudentFormProps) {
     </form>
   )
 }
-

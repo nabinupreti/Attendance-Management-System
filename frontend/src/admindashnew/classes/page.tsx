@@ -1,45 +1,74 @@
-"use client"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getClasses, addClass, updateClass, deleteClass } from "@/lib/api"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getClasses, addClass, updateClass, deleteClass } from "@/lib/api";
 
 interface Class {
-  class_id: number
-  name: string
-  section: string
-  semester: string
-  year: number
-  admin: string
+  class_id: number;
+  name: string;
+  section: string;
+  semester: string;
+  year: number;
+  admin: string;
 }
 
 export default function ClassesPage() {
-  const [classes, setClasses] = useState<Class[]>(getClasses())
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [currentClass, setCurrentClass] = useState<Class | null>(null)
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentClass, setCurrentClass] = useState<Class | null>(null);
 
-  const handleAddClass = (newClass: Omit<Class, "class_id">) => {
-    const addedClass = addClass(newClass)
-    setClasses([...classes, addedClass])
-    setIsAddDialogOpen(false)
-  }
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const data = await getClasses();
+        if (Array.isArray(data)) {
+          setClasses(data);
+        } else {
+          console.error("Invalid data format received:", data);
+          setClasses([]);
+        }
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    }
+    fetchClasses();
+  }, []);
 
-  const handleUpdateClass = (updatedClass: Class) => {
-    const updated = updateClass(updatedClass)
-    setClasses(classes.map((c) => (c.class_id === updated.class_id ? updated : c)))
-    setIsEditDialogOpen(false)
-  }
+  const handleAddClass = async (newClass: Omit<Class, "class_id">) => {
+    try {
+      const addedClass = await addClass(newClass);
+      setClasses((prev) => [...prev, addedClass]);
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding class:", error);
+    }
+  };
 
-  const handleDeleteClass = (classId: number) => {
-    deleteClass(classId)
-    setClasses(classes.filter((c) => c.class_id !== classId))
-  }
+  const handleUpdateClass = async (updatedClass: Class) => {
+    try {
+      const updated = await updateClass(updatedClass);
+      setClasses((prev) =>
+        prev.map((c) => (c.class_id === updated.class_id ? updated : c))
+      );
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating class:", error);
+    }
+  };
+
+  const handleDeleteClass = async (classId: number) => {
+    try {
+      await deleteClass(classId);
+      setClasses((prev) => prev.filter((c) => c.class_id !== classId));
+    } catch (error) {
+      console.error("Error deleting class:", error);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -69,42 +98,54 @@ export default function ClassesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {classes.map((cls) => (
-            <TableRow key={cls.class_id}>
-              <TableCell>{cls.name}</TableCell>
-              <TableCell>{cls.section}</TableCell>
-              <TableCell>{cls.semester}</TableCell>
-              <TableCell>{cls.year}</TableCell>
-              <TableCell>{cls.admin}</TableCell>
-              <TableCell>
-                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="mr-2" onClick={() => setCurrentClass(cls)}>
-                      Edit
+            {classes.length > 0 ? (
+              classes.map((cls) => (
+                <TableRow key={cls.class_id}>
+                  <TableCell>{cls.name}</TableCell>
+                  <TableCell>{cls.section}</TableCell>
+                  <TableCell>{cls.semester}</TableCell>
+                  <TableCell>{cls.year}</TableCell>
+                  <TableCell>
+                    {typeof cls.admin === 'object' 
+                      ? `${cls.admin.first_name} ${cls.admin.last_name}` 
+                      : cls.admin}
+                  </TableCell>
+                  <TableCell>
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="mr-2" onClick={() => setCurrentClass(cls)}>
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Class</DialogTitle>
+                        </DialogHeader>
+                        {currentClass && <ClassForm onSubmit={handleUpdateClass} initialData={currentClass} />}
+                      </DialogContent>
+                    </Dialog>
+                    <Button variant="destructive" onClick={() => handleDeleteClass(cls.class_id)}>
+                      Delete
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Class</DialogTitle>
-                    </DialogHeader>
-                    {currentClass && <ClassForm onSubmit={handleUpdateClass} initialData={currentClass} />}
-                  </DialogContent>
-                </Dialog>
-                <Button variant="destructive" onClick={() => handleDeleteClass(cls.class_id)}>
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No classes found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
       </Table>
     </div>
-  )
+  );
 }
 
 interface ClassFormProps {
-  onSubmit: (classData: Omit<Class, "class_id">) => void
-  initialData?: Class
+  onSubmit: (classData: Omit<Class, "class_id">) => void;
+  initialData?: Class;
 }
 
 function ClassForm({ onSubmit, initialData }: ClassFormProps) {
@@ -115,18 +156,18 @@ function ClassForm({ onSubmit, initialData }: ClassFormProps) {
       semester: "",
       year: new Date().getFullYear(),
       admin: "",
-    },
-  )
+    }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-  }
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: name === "year" ? Number.parseInt(value) : value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: name === "year" ? Number.parseInt(value) : value }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,6 +206,5 @@ function ClassForm({ onSubmit, initialData }: ClassFormProps) {
       </div>
       <Button type="submit">{initialData ? "Update" : "Add"} Class</Button>
     </form>
-  )
+  );
 }
-

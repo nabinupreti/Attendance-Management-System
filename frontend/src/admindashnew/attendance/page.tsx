@@ -14,39 +14,56 @@ import { BarChart, Calendar, Users } from "lucide-react"
 export default function AttendancePage() {
   const [attendanceData, setAttendanceData] = useState<Attendance[]>([])
   const [classes, setClasses] = useState<Class[]>([])
-  const [selectedClass, setSelectedClass] = useState<string>("")
+  const [selectedClass, setSelectedClass] = useState<string>("all")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
-    setAttendanceData(getAttendance())
-    setClasses(getClasses())
+    async function fetchData() {
+      try {
+        const attendance = await getAttendance()
+        const classList = await getClasses()
+        setAttendanceData(attendance)
+        setClasses(classList)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      }
+    }
+    fetchData()
   }, [])
 
-  const filteredAttendance = attendanceData.filter(
-    (record) =>
-      (selectedClass === "all" || record.student.student_class.class_id.toString() === selectedClass) &&
-      record.date.startsWith(selectedDate.toISOString().split("T")[0]) &&
-      (record.student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.student.last_name.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+  const filteredAttendance = attendanceData.filter((record) => {
+    const isClassMatch = selectedClass === "all" || record.student.student_class.class_id.toString() === selectedClass
+    const isDateMatch = record.date.startsWith(selectedDate.toISOString().split("T")[0])
+    const isSearchMatch =
+      record.student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.student.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+    return isClassMatch && isDateMatch && isSearchMatch
+  })
 
-  const handleStatusChange = (attendanceId: number, newStatus: string) => {
-    const updatedAttendance = updateAttendanceStatus(attendanceId, newStatus as "Present" | "Absent" | "Late")
-    setAttendanceData(attendanceData.map((record) => (record.id === updatedAttendance.id ? updatedAttendance : record)))
+  const handleStatusChange = async (attendanceId: number, newStatus: string) => {
+    try {
+      const updatedAttendance = await updateAttendanceStatus(attendanceId, newStatus as "Present" | "Absent" | "Late")
+      setAttendanceData((prevData) =>
+        prevData.map((record) => (record.id === updatedAttendance.id ? updatedAttendance : record))
+      )
+    } catch (error) {
+      console.error("Error updating attendance status:", error)
+    }
   }
 
-  const handleBulkUpdate = (status: "Present" | "Absent" | "Late") => {
-    const updatedRecords = bulkUpdateAttendance(
-      filteredAttendance.map((record) => record.id),
-      status,
-    )
-    setAttendanceData(
-      attendanceData.map((record) => {
-        const updated = updatedRecords.find((r) => r.id === record.id)
-        return updated ? updated : record
-      }),
-    )
+  const handleBulkUpdate = async (status: "Present" | "Absent" | "Late") => {
+    try {
+      const updatedRecords = await bulkUpdateAttendance(
+        filteredAttendance.map((record) => record.id),
+        status
+      )
+      setAttendanceData((prevData) =>
+        prevData.map((record) => updatedRecords.find((r) => r.id === record.id) || record)
+      )
+    } catch (error) {
+      console.error("Error updating attendance in bulk:", error)
+    }
   }
 
   const attendanceStats = filteredAttendance.reduce(
@@ -54,7 +71,7 @@ export default function AttendancePage() {
       acc[record.status]++
       return acc
     },
-    { Present: 0, Absent: 0, Late: 0 },
+    { Present: 0, Absent: 0, Late: 0 }
   )
 
   const attendanceRate =
@@ -65,10 +82,9 @@ export default function AttendancePage() {
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Attendance Management</h1>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -77,7 +93,7 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Present</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -86,7 +102,7 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Absent</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -95,7 +111,7 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -104,7 +120,6 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
       </div>
-
       <div className="flex space-x-4">
         <Select value={selectedClass} onValueChange={setSelectedClass}>
           <SelectTrigger className="w-[200px]">
@@ -120,24 +135,8 @@ export default function AttendancePage() {
           </SelectContent>
         </Select>
         <DatePicker selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} />
-        <Input
-          placeholder="Search student..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
+        <Input placeholder="Search student..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm" />
       </div>
-
-      <div className="flex space-x-4">
-        <Button onClick={() => handleBulkUpdate("Present")}>Mark All Present</Button>
-        <Button onClick={() => handleBulkUpdate("Absent")} variant="destructive">
-          Mark All Absent
-        </Button>
-        <Button onClick={() => handleBulkUpdate("Late")} variant="outline">
-          Mark All Late
-        </Button>
-      </div>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -155,18 +154,6 @@ export default function AttendancePage() {
               <TableCell>{`${record.student.student_class.name} - ${record.student.student_class.section}`}</TableCell>
               <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
               <TableCell>{record.status}</TableCell>
-              <TableCell>
-                <Select value={record.status} onValueChange={(value) => handleStatusChange(record.id, value)}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Present">Present</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                    <SelectItem value="Late">Late</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>
