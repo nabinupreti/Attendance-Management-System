@@ -65,12 +65,12 @@ export async function deleteStudent(userId: number): Promise<void> {
 
 export async function getClassCount(): Promise<number> {
   const response = await apiCall("/classes/count/")
-  return response.count
+  return response.total_classes
 }
 
 export async function getStudentCount(): Promise<number> {
   const response = await apiCall("/students/count/")
-  return response.count
+  return response.total_students
 }
 
 export async function getRecentAttendance(): Promise<Attendance[]> {

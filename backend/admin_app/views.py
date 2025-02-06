@@ -182,11 +182,29 @@ class AttendanceExportView(APIView):
         return Response({"message": "Export functionality not implemented yet"}, status=status.HTTP_200_OK)
 
 
-# View for recent attendance
+# # View for recent attendance
+# class RecentAttendanceView(View):
+#     def get(self, request):
+#         recent_attendance = Attendance.objects.order_by("-date_time")[:10].values()
+#         return JsonResponse(list(recent_attendance), safe=False)
+    
 class RecentAttendanceView(View):
     def get(self, request):
-        recent_attendance = Attendance.objects.order_by("-date_time")[:10].values()
-        return JsonResponse(list(recent_attendance), safe=False)
+        recent_attendance = Attendance.objects.order_by("-date_time")[:10]
+        attendance_data = []
+        
+        for record in recent_attendance:
+            attendance_data.append({
+                "id": record.id,
+                "status": record.status,
+                # "date_time": record.date_time.isoformat(),
+                # "student_id": record.student_id,
+                "first_name": record.student.first_name,
+                "last_name": record.student.last_name,
+                "username": record.student.user.username
+            })
+        
+        return JsonResponse(attendance_data, safe=False)
 
 # View for attendance trends
 class AttendanceTrendView(View):

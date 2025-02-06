@@ -28,6 +28,9 @@ export interface User {
     student: Student
     status: "Present" | "Absent" | "Late"
     date: string
+    first_name: string
+    last_name: string
+    username: string
   }
   
   export interface AttendanceReport {
