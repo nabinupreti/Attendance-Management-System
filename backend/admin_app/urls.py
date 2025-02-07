@@ -38,7 +38,7 @@ urlpatterns = [
     path('attendance/trend/', AttendanceTrendView.as_view(), name='attendance-trend'),  # GET: Attendance trends
 
     # Reports
-    #path('reports/attendance/', AttendanceReportView.as_view(), name='attendance-report'),  # POST: Generate attendance report
+    path('reports/attendance/', AttendanceReportView.as_view(), name='attendance-report'),  # POST: Generate attendance report
     path('reports/export/', AttendanceExportView.as_view(), name='attendance-export'),  # POST: Export attendance report,
 
 ]

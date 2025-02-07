@@ -19,35 +19,57 @@ export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
-    setAttendanceData(getAttendance())
-    setClasses(getClasses())
+    const fetchData = async () => {
+      const attendance = await getAttendance()
+      const classes = await getClasses()
+  
+      if (classes) {
+        setAttendanceData(attendance)
+        setClasses(classes)
+      }
+    }
+    fetchData()
   }, [])
 
-  const filteredAttendance = attendanceData.filter(
-    (record) =>
-      (selectedClass === "all" || record.student.student_class.class_id.toString() === selectedClass) &&
-      record.date.startsWith(selectedDate.toISOString().split("T")[0]) &&
-      (record.student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.student.last_name.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+  const filteredAttendance = attendanceData.filter((record) => {
+    const isClassMatch = selectedClass === "all" || record.student.student_class.class_id.toString() === selectedClass
+    const recordDate = record.date ? new Date(record.date) : null
+    const isDateMatch = recordDate
+      ? recordDate.toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0]
+      : false
+    const isSearchMatch =
+      record.student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.student.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+    return isClassMatch && isDateMatch && isSearchMatch
+  })
 
-  const handleStatusChange = (attendanceId: number, newStatus: string) => {
-    const updatedAttendance = updateAttendanceStatus(attendanceId, newStatus as "Present" | "Absent" | "Late")
-    setAttendanceData(attendanceData.map((record) => (record.id === updatedAttendance.id ? updatedAttendance : record)))
-  }
+    const handleStatusChange = async (attendanceId: number, newStatus: string) => {
+      const updatedAttendance = await updateAttendanceStatus(attendanceId, newStatus as "Present" | "Absent" | "Late")
+    
+      if (!updatedAttendance) return // Prevents undefined data from breaking the app
+    
+      setAttendanceData((prevData) =>
+        prevData.map((record) =>
+          record.id === updatedAttendance.id ? updatedAttendance : record
+        )
+      )
+    }
 
-  const handleBulkUpdate = (status: "Present" | "Absent" | "Late") => {
-    const updatedRecords = bulkUpdateAttendance(
-      filteredAttendance.map((record) => record.id),
-      status,
-    )
-    setAttendanceData(
-      attendanceData.map((record) => {
-        const updated = updatedRecords.find((r) => r.id === record.id)
-        return updated ? updated : record
-      }),
-    )
-  }
+    const handleBulkUpdate = async (status: "Present" | "Absent" | "Late") => {
+      const updatedRecords = await bulkUpdateAttendance(
+        filteredAttendance.map((record) => record.id),
+        status
+      )
+    
+      if (!updatedRecords || updatedRecords.length === 0) return // Prevents updating state with empty data
+    
+      setAttendanceData((prevData) =>
+        prevData.map((record) => {
+          const updated = updatedRecords.find((r) => r.id === record.id)
+          return updated ? updated : record
+        })
+      )
+    }
 
   const attendanceStats = filteredAttendance.reduce(
     (acc, record) => {
