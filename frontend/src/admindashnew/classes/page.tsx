@@ -190,9 +190,14 @@ function ClassForm({ onSubmit, initialData }: ClassFormProps) {
             <SelectValue placeholder="Select semester" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Fall">Fall</SelectItem>
-            <SelectItem value="Spring">Spring</SelectItem>
-            <SelectItem value="Summer">Summer</SelectItem>
+            <SelectItem value="First">First</SelectItem>
+            <SelectItem value="Second">Second</SelectItem>
+            <SelectItem value="Third">Third</SelectItem>
+            <SelectItem value="Fourth">Fourth</SelectItem>
+            <SelectItem value="Fifth">Fifth</SelectItem>
+            <SelectItem value="Sixth">Sixth</SelectItem>
+            <SelectItem value="Seventh">Seventh</SelectItem>
+            <SelectItem value="Eighth">Eighth</SelectItem>
           </SelectContent>
         </Select>
       </div>

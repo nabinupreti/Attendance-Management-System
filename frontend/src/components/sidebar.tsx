@@ -4,11 +4,11 @@ import { BookOpen, Calendar, Home, Users, FileText, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 
 const links = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Classes', href: '/classes', icon: BookOpen },
-  { name: 'Students', href: '/students', icon: Users },
-  { name: 'Attendance', href: '/attendance', icon: Calendar },
-  { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Dashboard', href: '/admin-dashboard', icon: Home },
+  { name: 'Classes', href: '/admin-dashboard/classes', icon: BookOpen },
+  { name: 'Students', href: '/admin-dashboard/students', icon: Users },
+  // { name: 'Attendance', href: '/attendance', icon: Calendar },
+  { name: 'Reports', href: '/admin-dashboard/reports', icon: FileText },
 ];
 
 export function Sidebar() {
@@ -24,7 +24,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col bg-gray-900 text-white">
       <div className="flex h-16 items-center justify-center border-b border-gray-800">
-        <h1 className="text-xl font-bold">Attendance System</h1>
+        <h1 className="text-xl font-bold">AMS</h1>
       </div>
       <nav className="flex-1 space-y-1 px-2 py-4">
         {links.map((link) => {

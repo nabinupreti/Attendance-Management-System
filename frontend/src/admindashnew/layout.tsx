@@ -19,7 +19,9 @@ export default function RootLayout({
   return (
     // <html lang="en">
       //<body className={inter.className}> 
-        <div className="flex h-screen w-screen">
+        <div className="fixed inset-0 flex">
+          {/* className="flex w-screen h-screen" */}
+  
           <div className="w-64 flex-shrink-0">
             <Sidebar />
           </div>

@@ -16,8 +16,8 @@ import { Toaster } from './components/ui/toaster.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* <App />  */}
-    <Toaster />
+    <App /> 
+    {/* <Toaster />
       <BrowserRouter>
        <Routes>
         
@@ -58,6 +58,6 @@ createRoot(document.getElementById('root')!).render(
         } /> 
 
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter> */}
   </StrictMode>
 );
