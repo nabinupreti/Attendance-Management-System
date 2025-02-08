@@ -259,7 +259,9 @@ class FaceVerification(View):
 
             # Decode the base64 image data
             image_data = base64.b64decode(image_data)
-            temp_image_path = '/tmp/temp_image.jpg'
+            temp_image_path = os.path.join(os.getcwd(), 'temp_image.jpg')
+            print("<<<<<<<<<<<"+temp_image_path+">>>>>>>>>>>")
+
             with open(temp_image_path, 'wb') as f:
                 f.write(image_data)
 
