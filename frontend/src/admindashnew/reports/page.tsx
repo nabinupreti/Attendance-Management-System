@@ -18,6 +18,7 @@ export default function ReportsPage() {
   const handleGenerateReport = async () => {
     const report = await getAttendanceReport(selectedClass, startDate, endDate)
     setReportData(report)
+    console.log(reportData)
   }
 
   const handleExportReport = async () => {
@@ -39,10 +40,10 @@ export default function ReportsPage() {
                 <SelectValue placeholder="Select Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
+                <SelectItem value="2">All Classes</SelectItem>
                 <SelectItem value="1">Mathematics - A</SelectItem>
-                <SelectItem value="2">Physics - B</SelectItem>
-                <SelectItem value="3">Chemistry - C</SelectItem>
+                <SelectItem value="6">Physics - B</SelectItem>
+                <SelectItem value="5">Chemistry - C</SelectItem>
               </SelectContent>
             </Select>
             <DatePicker selected={startDate} onSelect={(date) => date && setStartDate(date)} placeholder="Start Date" />
@@ -77,7 +78,7 @@ export default function ReportsPage() {
               </TableHeader>
               <TableBody>
                 {reportData.map((row: any) => (
-                  <TableRow key={row.class}>
+                  <TableRow key={row.date}>
                     <TableCell>{row.class}</TableCell>
                     <TableCell>{row.totalStudents}</TableCell>
                     <TableCell>{row.present}</TableCell>

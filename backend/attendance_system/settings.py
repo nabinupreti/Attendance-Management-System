@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "api",
     "admin_app",
+    "django_crontab",
     # 'rest_framework_simplejwt.token_blacklist'
 ]
 
@@ -146,3 +147,7 @@ AUTH_USER_MODEL = 'api.User'
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+CRONJOBS = [
+    ('0 16 * * *', 'django.core.management.call_command', ['mark_absent'], '>> /Users/nabinupreti/Desktop/AMS_1/Attendance-Management-System/backend/cronjob.log 2>&1'),
+]

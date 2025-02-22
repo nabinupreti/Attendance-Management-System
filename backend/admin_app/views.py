@@ -225,12 +225,56 @@ class AttendanceReportView(View):
         start_date = data.get("startDate")
         end_date = data.get("endDate")
 
-        attendance_records = Attendance.objects.filter(
-            class_id=class_id,
-            date__range=[start_date, end_date]
-        ).values()
+        if not class_id or not start_date or not end_date:
+            return JsonResponse({"error": "Missing parameters"}, status=400)
 
-        return JsonResponse(list(attendance_records), safe=False)
+        attendance_records = Attendance.objects.filter(
+            student__student_class=class_id,
+            date_time__range=[start_date, end_date]
+        )
+
+        # Group attendance records by date
+        grouped_records = {}
+        for record in attendance_records:
+            date_str = record.date_time.date().isoformat()
+            if date_str not in grouped_records:
+                grouped_records[date_str] = {
+                    "class": record.student.student_class.name,
+                    "totalStudents": 0,
+                    "present": 0,
+                    "absent": 0,
+                    "late": 0,
+                    "attendanceRate": 0,
+                }
+            grouped_records[date_str]["totalStudents"] += 1
+            if record.status == "Present":
+                grouped_records[date_str]["present"] += 1
+            elif record.status == "Absent":
+                grouped_records[date_str]["absent"] += 1
+            elif record.status == "Late":
+                grouped_records[date_str]["late"] += 1
+
+        # Calculate attendance rate for each day
+        for date_str, data in grouped_records.items():
+            total_students = data["totalStudents"]
+            present_count = data["present"]
+            data["attendanceRate"] = int((present_count / total_students * 100)) if total_students else 0
+
+        # Convert grouped records to a list
+        response_data = [
+            {
+                "date": date_str,
+                "class": data["class"],
+                "totalStudents": data["totalStudents"],
+                "present": data["present"],
+                "absent": data["absent"],
+                "late": data["late"],
+                "attendanceRate": data["attendanceRate"],
+            }
+            for date_str, data in grouped_records.items()
+        ]
+
+        return JsonResponse(response_data, safe=False)
 
 # View to export attendance report as CSV
 @method_decorator(csrf_exempt, name="dispatch")

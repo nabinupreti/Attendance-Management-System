@@ -291,7 +291,7 @@ class FaceVerification(View):
             
             current_time = timezone.localtime(timezone.now())
             
-            college_start_time = current_time.replace(hour=11, minute=0, second=0)
+            college_start_time = current_time.replace(hour=12, minute=0, second=0)
             print("college_start_time", college_start_time)
             college_end_time = current_time.replace(hour=16, minute=0, second=0)
             print("college_end_time", college_end_time)
