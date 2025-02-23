@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import Header from "./header";
+import Footer from "./footer";
 
 import { Button } from "@/components/ui/button"
 // import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +10,7 @@ import FeatureCard from "./ui/feature-card"
 export default function LandingPage() {
   return (
     <>
+    <Header />
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
@@ -109,16 +112,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="w-full border-t bg-background py-6">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2025 Attendance Management System. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer/>
     </div>
     </>
   )

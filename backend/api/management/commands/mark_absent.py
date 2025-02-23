@@ -17,6 +17,6 @@ class Command(BaseCommand):
                     Attendance.objects.create(status=Attendance.ABSENT, student=student, date_time=current_time)
                     self.stdout.write(self.style.SUCCESS(f'Marked {student.user.username} as absent'))
                 else:
-                    self.stdout.write(self.style.WARNING(f'{student.user.username} has already been marked as absent'))
+                    self.stdout.write(self.style.WARNING(f'{student.user.username} has already verified attendance today'))
         else:
             self.stdout.write(self.style.WARNING('It is not yet the end of the college day'))

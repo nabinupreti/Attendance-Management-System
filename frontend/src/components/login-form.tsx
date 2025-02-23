@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Header from "./header";
+import Footer from "./footer";
 import {
   Card,
   CardContent,
@@ -44,10 +46,14 @@ export default function LoginForm({ className, ...props }: { className?: string;
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <>
+    <div className="w-screen">
+      <Header />
+    </div>    
+    <div className={cn("flex justify-center items-center gap-6 min-h-screen", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="font-bold text-xl">Login</CardTitle>
           <CardDescription>
             Enter your credentials below to login to your account
           </CardDescription>
@@ -99,5 +105,7 @@ export default function LoginForm({ className, ...props }: { className?: string;
         </CardContent>
       </Card>
     </div>
+    <Footer/>
+    </>
   );
 }

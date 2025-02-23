@@ -11,6 +11,8 @@ import { Camera, AlertCircle, Loader2 } from "lucide-react"
 import { registerStudent } from "@/services/register-api"
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import Header from "./header"
+import Footer from "./footer"
 
 
 
@@ -121,6 +123,10 @@ export default function RegistrationForm() {
   }
 
   return (
+    <>
+    <div className="w-screen">
+      <Header />
+    </div>
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl ">
         <CardHeader >
@@ -297,7 +303,7 @@ export default function RegistrationForm() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full"
+                      className="w-60"
                       onClick={() => {
                         setShowCamera(true)
                         startCamera()
@@ -313,7 +319,7 @@ export default function RegistrationForm() {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-60" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -327,6 +333,8 @@ export default function RegistrationForm() {
         </CardContent>
       </Card>
     </div>
+    <Footer/>
+    </>
   )
 }
 

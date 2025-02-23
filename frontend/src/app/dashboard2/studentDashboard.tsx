@@ -31,7 +31,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import axios from 'axios';
-import { tr } from "date-fns/locale"
+import Header from "@/components/header"
 
 // const studentData = await getStudentDashboard(34);
 
@@ -71,8 +71,20 @@ export default function StudentDashboard(props: any) {
   const [isVerified, setIsVerified] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [isWithinCollegeRadius, setIsWithinCollegeRadius] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const { toast } = useToast()
+
+  // NCCS College Coordinates (27.71477743675058, 85.30895279815599)
+  const collegeLatitude = 27.71477743675058; // college's latitude
+  const collegeLongitude = 85.30895279815599; //  college's longitude
+
+  // Test coordinates for distance calculation 27.657877442484125, 85.31549198661901
+  // const collegeLatitude = 27.657877442484125; 
+  // const collegeLongitude = 85.31549198661901; 
+  const allowedRadius = 100; // allowed radius in meters
+  
+
 
   useEffect(() => {
     if (studentData) {
@@ -81,6 +93,58 @@ export default function StudentDashboard(props: any) {
       console.log("Date:", new Date().toDateString())
     }
   }, [studentData]);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const distance = getDistanceFromLatLonInMeters(latitude, longitude, collegeLatitude, collegeLongitude);
+          console.log("Distance from college:", distance);
+          setIsWithinCollegeRadius(distance <= allowedRadius);
+          if (distance > allowedRadius) {
+            toast({
+              title: "Out of College Radius",
+              description: "You are not within the college radius. Attendance check-in is disabled.",
+              variant: "destructive",
+            });
+          }
+        },
+        (error) => {
+          console.error("Error getting location", error);
+          toast({
+            title: "Location Error",
+            description: "Unable to access your location. Please check your permissions.",
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Geolocation Error",
+        description: "Geolocation is not supported by your browser.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Radius of the earth in meters
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in meters
+    return distance;
+  };
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+  };
+
   const closeCamera = useCallback(() => {
     if (videoRef.current) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -331,7 +395,8 @@ const handleLogout = useCallback(async () => {
         disabled={
           isChecking ||
           isVerified ||
-          new Date(studentData.last_check_in).toDateString() === new Date().toDateString()
+          new Date(studentData.last_check_in).toDateString() === new Date().toDateString() ||
+          !isWithinCollegeRadius
         }
           >
         {isVerified ? (

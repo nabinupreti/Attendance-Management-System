@@ -13,7 +13,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useState } from "react";
-
+import Header from "../header";
+import Footer from "../footer";
 const URL = "http://127.0.0.1:8000/adminuser/login";
 
 export default function AdminLoginForm({ className, ...props }: { className?: string; [key: string]: any }) {
@@ -41,7 +42,11 @@ export default function AdminLoginForm({ className, ...props }: { className?: st
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <>
+    <div className="w-screen">
+      <Header />
+    </div>
+    <div className={cn("flex justify-center items-center gap-6 min-h-screen", className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Admin Login</CardTitle>
@@ -93,5 +98,7 @@ export default function AdminLoginForm({ className, ...props }: { className?: st
         </CardContent>
       </Card>
     </div>
+      <Footer /> 
+    </>
   );
 }
